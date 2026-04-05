@@ -1,17 +1,19 @@
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
-import Search from "@/components/Search";
-import FeaturedDeals from "@/components/FeaturedDeals";
+import FeaturesSection from "@/components/FeaturesSection";
+import ReviewsSection from "@/components/ReviewsSection";
+import TravelHighlightsSection from "@/components/TravelHighlightsSection";
 import Footer from "@/components/Footer";
 
 export default function Home() {
-  return (
-    <main>
-      <Header />
-      <Hero />
-      <Search />
-      <FeaturedDeals />
-      <Footer />
-    </main>
-  );
+ return (
+  <main>
+   <Header />
+   <Hero />
+   <FeaturesSection />
+   <ReviewsSection />
+   <TravelHighlightsSection />
+   <Footer />
+  </main>
+ );
 }
