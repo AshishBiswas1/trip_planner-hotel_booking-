@@ -1,12 +1,27 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
 import { BedDouble, Plane, Menu, X } from "lucide-react";
 
 export default function Header() {
  const [isOpen, setIsOpen] = useState(false);
+ const { user, isAuthLoading, isAuthenticated, logout } = useAuth();
+
+ const profileImage =
+  user?.photo && user.photo !== "default.jpg"
+   ? user.photo
+   : `https://ui-avatars.com/api/?name=${encodeURIComponent(
+      user?.name || "User",
+     )}&background=2563eb&color=fff`;
+
+ const handleLogout = async () => {
+  await logout();
+  setIsOpen(false);
+ };
 
  return (
-  <header className="bg-white shadow-md">
+  <header className="sticky top-0 z-50 bg-white shadow-md">
    <div className="container mx-auto px-4 py-6 flex justify-between items-center">
     <div className="flex items-center space-x-2">
      <BedDouble className="h-8 w-8 text-blue-500" />
@@ -29,12 +44,37 @@ export default function Header() {
      </a>
     </div>
     <div className="hidden md:flex items-center space-x-4">
-     <button className="text-gray-600 hover:text-blue-500 transition-colors duration-300">
-      Login
-     </button>
-     <button className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors duration-300">
-      Sign Up
-     </button>
+     {isAuthLoading ? null : isAuthenticated ? (
+      <>
+       <img
+        src={profileImage}
+        alt="Profile"
+        className="h-9 w-9 rounded-full border border-gray-200 object-cover"
+       />
+       <button
+        type="button"
+        onClick={handleLogout}
+        className="border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-100 transition-colors duration-300"
+       >
+        Logout
+       </button>
+      </>
+     ) : (
+      <>
+       <Link
+        href="/login"
+        className="text-gray-600 hover:text-blue-500 transition-colors duration-300"
+       >
+        Login
+       </Link>
+       <Link
+        href="/signup"
+        className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors duration-300"
+       >
+        Sign Up
+       </Link>
+      </>
+     )}
     </div>
     <div className="md:hidden">
      <button onClick={() => setIsOpen(!isOpen)}>
@@ -55,12 +95,39 @@ export default function Header() {
       Flights
      </a>
      <div className="flex flex-col space-y-2 mt-4">
-      <button className="border border-gray-300 text-gray-600 px-4 py-2 rounded-md">
-       Login
-      </button>
-      <button className="bg-blue-500 text-white px-4 py-2 rounded-md">
-       Sign Up
-      </button>
+      {isAuthLoading ? null : isAuthenticated ? (
+       <>
+        <div className="flex items-center justify-center py-2">
+         <img
+          src={profileImage}
+          alt="Profile"
+          className="h-10 w-10 rounded-full border border-gray-200 object-cover"
+         />
+        </div>
+        <button
+         type="button"
+         onClick={handleLogout}
+         className="border border-gray-300 text-gray-700 px-4 py-2 rounded-md"
+        >
+         Logout
+        </button>
+       </>
+      ) : (
+       <>
+        <Link
+         href="/login"
+         className="border border-gray-300 text-gray-600 px-4 py-2 rounded-md text-center"
+        >
+         Login
+        </Link>
+        <Link
+         href="/signup"
+         className="bg-blue-500 text-white px-4 py-2 rounded-md text-center"
+        >
+         Sign Up
+        </Link>
+       </>
+      )}
      </div>
     </div>
    )}
