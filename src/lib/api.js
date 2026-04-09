@@ -187,6 +187,13 @@ export const authApi = {
   }),
 };
 
+export const hotelApi = {
+ getAll: () =>
+  apiRequest(API_ROUTES.hotel.all, {
+   method: "GET",
+  }),
+};
+
 export {
  API_BASE_URL,
  apiRequest,

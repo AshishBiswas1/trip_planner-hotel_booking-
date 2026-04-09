@@ -28,13 +28,13 @@ export default function Header() {
      <span className="text-2xl font-bold text-gray-800">Trip Planner</span>
     </div>
     <div className="hidden md:flex items-center space-x-8">
-     <a
-      href="#"
+     <Link
+      href="/hotels"
       className="text-gray-600 hover:text-blue-500 transition-colors duration-300 flex items-center space-x-2"
      >
       <BedDouble className="h-5 w-5" />
-      <span>Hotels</span>
-     </a>
+      <span>Hotel</span>
+     </Link>
      <a
       href="#"
       className="text-gray-600 hover:text-blue-500 transition-colors duration-300 flex items-center space-x-2"
@@ -88,9 +88,13 @@ export default function Header() {
    </div>
    {isOpen && (
     <div className="md:hidden bg-white px-4 pb-4">
-     <a href="#" className="block text-gray-600 hover:text-blue-500 py-2">
-      Hotels
-     </a>
+     <Link
+      href="/hotels"
+      className="block text-gray-600 hover:text-blue-500 py-2"
+      onClick={() => setIsOpen(false)}
+     >
+      Hotel
+     </Link>
      <a href="#" className="block text-gray-600 hover:text-blue-500 py-2">
       Flights
      </a>
