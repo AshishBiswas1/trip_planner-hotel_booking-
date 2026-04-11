@@ -192,6 +192,10 @@ export const hotelApi = {
   apiRequest(API_ROUTES.hotel.all, {
    method: "GET",
   }),
+ getBySlug: (slug) =>
+  apiRequest(API_ROUTES.hotel.bySlug(slug), {
+   method: "GET",
+  }),
 };
 
 export {

@@ -27,17 +27,6 @@ function getHotelImage(hotel) {
  return "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80";
 }
 
-function formatPrice(pricePerNight) {
- const value = Number(pricePerNight);
- if (!Number.isFinite(value)) return "Price unavailable";
-
- return new Intl.NumberFormat("en-IN", {
-  style: "currency",
-  currency: "INR",
-  maximumFractionDigits: 0,
- }).format(value);
-}
-
 function getShortDescription(description) {
  if (!description) {
   return "Comfort stay near top attractions.";
@@ -251,6 +240,7 @@ export default function HotelStrips() {
       >
        {currentHotels.map((hotel, index) => {
         const tilt = getTilt(index);
+        const hotelHref = hotel?.slug ? `/hotels/${hotel.slug}` : null;
 
         return (
          <motion.article
@@ -269,54 +259,103 @@ export default function HotelStrips() {
            "--stack-shift": `${index % 2 === 0 ? -6 : 6}px`,
           }}
          >
-          <div className="flex h-[120px] items-stretch overflow-hidden rounded-2xl border border-white/80 bg-white/90 shadow-xl shadow-slate-700/10 backdrop-blur sm:h-[132px]">
-           <div className="relative h-full w-[34%] sm:w-[30%] lg:w-[24%]">
-            <Image
-             src={getHotelImage(hotel)}
-             alt={hotel.name || "Hotel"}
-             fill
-             sizes="(max-width: 1024px) 34vw, 24vw"
-             className="object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-slate-900/30 to-transparent" />
-            <div className="absolute left-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-bold text-slate-800 sm:text-xs">
-             {formatPrice(hotel.pricePerNight)}
-            </div>
-           </div>
+          {hotelHref ? (
+           <Link href={hotelHref} className="block h-full focus:outline-none">
+            <div className="flex h-[120px] items-stretch overflow-hidden rounded-2xl border border-white/80 bg-white/90 shadow-xl shadow-slate-700/10 backdrop-blur transition duration-300 hover:-translate-y-0.5 hover:shadow-2xl hover:shadow-slate-700/15 sm:h-[132px]">
+             <div className="relative h-full w-[34%] sm:w-[30%] lg:w-[24%]">
+              <Image
+               src={getHotelImage(hotel)}
+               alt={hotel.name || "Hotel"}
+               fill
+               sizes="(max-width: 1024px) 34vw, 24vw"
+               className="object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-slate-900/30 to-transparent" />
+             </div>
 
-           <div className="flex min-w-0 flex-1 flex-col justify-between p-3 sm:p-4">
-            <div>
-             <h2 className="truncate text-base font-extrabold text-slate-900 sm:text-lg">
-              {hotel.name}
-             </h2>
-             <p className="mt-1 truncate text-xs text-slate-600 sm:text-sm">
-              {getShortDescription(hotel.description)}
-             </p>
+             <div className="flex min-w-0 flex-1 flex-col justify-between p-3 sm:p-4">
+              <div>
+               <h2 className="truncate text-base font-extrabold text-slate-900 sm:text-lg">
+                {hotel.name}
+               </h2>
+               <p className="mt-1 truncate text-xs text-slate-600 sm:text-sm">
+                {getShortDescription(hotel.description)}
+               </p>
 
-             <div className="mt-2.5 flex flex-wrap items-center gap-1.5 text-[11px] text-slate-700 sm:gap-2 sm:text-xs">
-              <span className="inline-flex items-center gap-1 rounded-full bg-cyan-50 px-2 py-1 font-semibold text-cyan-700">
-               <MapPin className="h-3.5 w-3.5" />
-               {hotel?.location?.city || "City"}
-              </span>
-              <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-1 font-semibold text-amber-700">
-               <Star className="h-3.5 w-3.5" />
-               {hotel?.rating ? `${hotel.rating}/5` : "No rating"}
-              </span>
-              <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 px-2 py-1 font-semibold text-violet-700">
-               <BedDouble className="h-3.5 w-3.5" />
-               {Number.isFinite(hotel?.roomsAvailable)
-                ? `${hotel.roomsAvailable} rooms`
-                : "Room info pending"}
-              </span>
+               <div className="mt-2.5 flex flex-wrap items-center gap-1.5 text-[11px] text-slate-700 sm:gap-2 sm:text-xs">
+                <span className="inline-flex items-center gap-1 rounded-full bg-cyan-50 px-2 py-1 font-semibold text-cyan-700">
+                 <MapPin className="h-3.5 w-3.5" />
+                 {hotel?.location?.city || "City"}
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-1 font-semibold text-amber-700">
+                 <Star className="h-3.5 w-3.5" />
+                 {hotel?.rating ? `${hotel.rating}/5` : "No rating"}
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 px-2 py-1 font-semibold text-violet-700">
+                 <BedDouble className="h-3.5 w-3.5" />
+                 {Number.isFinite(hotel?.roomsAvailable)
+                  ? `${hotel.roomsAvailable} rooms`
+                  : "Room info pending"}
+                </span>
+               </div>
+              </div>
+
+              <div className="mt-2 flex items-center gap-1.5 text-xs text-slate-500 sm:text-sm">
+               <Landmark className="h-3.5 w-3.5" />
+               <span>
+                {hotel?.location?.country || "Country not available"}
+               </span>
+              </div>
              </div>
             </div>
+           </Link>
+          ) : (
+           <div className="flex h-[120px] items-stretch overflow-hidden rounded-2xl border border-white/80 bg-white/90 shadow-xl shadow-slate-700/10 backdrop-blur sm:h-[132px]">
+            <div className="relative h-full w-[34%] sm:w-[30%] lg:w-[24%]">
+             <Image
+              src={getHotelImage(hotel)}
+              alt={hotel.name || "Hotel"}
+              fill
+              sizes="(max-width: 1024px) 34vw, 24vw"
+              className="object-cover"
+             />
+             <div className="absolute inset-0 bg-gradient-to-r from-slate-900/30 to-transparent" />
+            </div>
 
-            <div className="mt-2 flex items-center gap-1.5 text-xs text-slate-500 sm:text-sm">
-             <Landmark className="h-3.5 w-3.5" />
-             <span>{hotel?.location?.country || "Country not available"}</span>
+            <div className="flex min-w-0 flex-1 flex-col justify-between p-3 sm:p-4">
+             <div>
+              <h2 className="truncate text-base font-extrabold text-slate-900 sm:text-lg">
+               {hotel.name}
+              </h2>
+              <p className="mt-1 truncate text-xs text-slate-600 sm:text-sm">
+               {getShortDescription(hotel.description)}
+              </p>
+
+              <div className="mt-2.5 flex flex-wrap items-center gap-1.5 text-[11px] text-slate-700 sm:gap-2 sm:text-xs">
+               <span className="inline-flex items-center gap-1 rounded-full bg-cyan-50 px-2 py-1 font-semibold text-cyan-700">
+                <MapPin className="h-3.5 w-3.5" />
+                {hotel?.location?.city || "City"}
+               </span>
+               <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-1 font-semibold text-amber-700">
+                <Star className="h-3.5 w-3.5" />
+                {hotel?.rating ? `${hotel.rating}/5` : "No rating"}
+               </span>
+               <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 px-2 py-1 font-semibold text-violet-700">
+                <BedDouble className="h-3.5 w-3.5" />
+                {Number.isFinite(hotel?.roomsAvailable)
+                 ? `${hotel.roomsAvailable} rooms`
+                 : "Room info pending"}
+               </span>
+              </div>
+             </div>
+
+             <div className="mt-2 flex items-center gap-1.5 text-xs text-slate-500 sm:text-sm">
+              <Landmark className="h-3.5 w-3.5" />
+              <span>{hotel?.location?.country || "Country not available"}</span>
+             </div>
             </div>
            </div>
-          </div>
+          )}
          </motion.article>
         );
        })}

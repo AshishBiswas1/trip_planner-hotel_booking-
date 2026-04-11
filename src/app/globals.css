@@ -51,3 +51,42 @@ body {
   --hotel-stack-top: 84px;
  }
 }
+
+.review-marquee-track {
+ display: flex;
+ gap: 1rem;
+ width: max-content;
+ animation: review-marquee 22s linear infinite;
+}
+
+.review-marquee-track:hover {
+ animation-play-state: paused;
+}
+
+@keyframes review-marquee {
+ 0% {
+  transform: translateX(0);
+ }
+
+ 100% {
+  transform: translateX(-50%);
+ }
+}
+
+.map-stop-pulse {
+ animation: map-pulse 2s ease-in-out infinite;
+}
+
+@keyframes map-pulse {
+ 0% {
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5);
+ }
+
+ 70% {
+  box-shadow: 0 0 0 12px rgba(16, 185, 129, 0);
+ }
+
+ 100% {
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+ }
+}
