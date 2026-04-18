@@ -11,7 +11,7 @@ import {
 import { authApi, authStorage, parseTokenPayload } from "@/lib/api";
 
 const AuthContext = createContext(null);
-const TOKEN_EXPIRY_SKEW_MS = 2000;
+const TOKEN_EXPIRY_SKEW_MS = 0;
 
 function extractUserFromResponse(data) {
  return data?.data?.user || data?.data?.data || null;
@@ -30,33 +30,45 @@ export function AuthProvider({ children }) {
   setUser(null);
  }, []);
 
- const loginWithAuthData = useCallback(async (data) => {
-  const nextToken = data?.token;
-  const nextUser = extractUserFromResponse(data);
+ const loginWithAuthData = useCallback(
+  async (data) => {
+   const nextToken = data?.token;
+   const nextUser = extractUserFromResponse(data);
 
-  if (!nextToken) {
-   throw new Error("Authentication token missing from response.");
-  }
+   if (!nextToken) {
+    throw new Error("Authentication token missing from response.");
+   }
 
-  authStorage.setToken(nextToken);
-  setToken(nextToken);
+   authStorage.setToken(nextToken);
+   setToken(nextToken);
 
-  if (nextUser) {
-   authStorage.setUser(nextUser);
-   setUser(nextUser);
-   return;
-  }
+   if (nextUser) {
+    authStorage.setUser(nextUser);
+    setUser(nextUser);
+    return;
+   }
 
-  try {
-   const meData = await authApi.getMe(nextToken);
-   const meUser = extractUserFromResponse(meData);
-   authStorage.setUser(meUser || null);
-   setUser(meUser || null);
-  } catch {
-   const cachedUser = authStorage.getUser();
-   setUser(cachedUser || null);
-  }
- }, []);
+   try {
+    const meData = await authApi.getMe(nextToken);
+    const meUser = extractUserFromResponse(meData);
+    authStorage.setUser(meUser || null);
+    setUser(meUser || null);
+   } catch (error) {
+    if (
+     error?.status === 401 ||
+     error?.status === 403 ||
+     authStorage.isTokenExpired(nextToken)
+    ) {
+     clearAuth("login-me-unauthorized");
+     throw error;
+    }
+
+    const cachedUser = authStorage.getUser();
+    setUser(cachedUser || null);
+   }
+  },
+  [clearAuth],
+ );
 
  const logout = useCallback(async () => {
   const currentToken = authStorage.getToken();
@@ -77,13 +89,7 @@ export function AuthProvider({ children }) {
    const storedToken = authStorage.getToken();
 
    if (!storedToken || authStorage.isTokenExpired(storedToken)) {
-    setToken(null);
-    setUser(null);
-
-    if (storedToken && authStorage.isTokenExpired(storedToken)) {
-     authStorage.clearToken();
-     authStorage.clearUser();
-    }
+    clearAuth("restore-invalid-or-expired-token");
 
     if (isMounted) setIsAuthLoading(false);
     return;
@@ -111,7 +117,13 @@ export function AuthProvider({ children }) {
      }
     }
    } catch (error) {
-    if (isMounted) {
+    if (
+     error?.status === 401 ||
+     error?.status === 403 ||
+     authStorage.isTokenExpired(storedToken)
+    ) {
+     clearAuth("restore-me-unauthorized");
+    } else if (isMounted) {
      setUser(cachedUser || null);
     }
    } finally {
@@ -131,8 +143,16 @@ export function AuthProvider({ children }) {
  useEffect(() => {
   if (!token) return;
 
+  if (authStorage.isTokenExpired(token)) {
+   clearAuth("token-invalid-effect");
+   return;
+  }
+
   const payload = parseTokenPayload(token);
-  if (!payload?.exp) return;
+  if (!payload?.exp) {
+   clearAuth("token-invalid-payload");
+   return;
+  }
 
   const expiresAtMs = payload.exp * 1000;
   const delayMs = expiresAtMs - Date.now() + TOKEN_EXPIRY_SKEW_MS;
@@ -164,12 +184,47 @@ export function AuthProvider({ children }) {
   };
  }, [token, clearAuth]);
 
+ useEffect(() => {
+  const validateSessionArtifacts = () => {
+   const activeToken = authStorage.getToken();
+
+   if (!activeToken || authStorage.isTokenExpired(activeToken)) {
+    clearAuth("session-artifact-validation");
+    return;
+   }
+
+   setToken((prevToken) =>
+    prevToken === activeToken ? prevToken : activeToken,
+   );
+  };
+
+  validateSessionArtifacts();
+
+  const handleVisibilityChange = () => {
+   if (document.visibilityState === "visible") {
+    validateSessionArtifacts();
+   }
+  };
+
+  window.addEventListener("focus", validateSessionArtifacts);
+  window.addEventListener("pageshow", validateSessionArtifacts);
+  window.addEventListener("storage", validateSessionArtifacts);
+  document.addEventListener("visibilitychange", handleVisibilityChange);
+
+  return () => {
+   window.removeEventListener("focus", validateSessionArtifacts);
+   window.removeEventListener("pageshow", validateSessionArtifacts);
+   window.removeEventListener("storage", validateSessionArtifacts);
+   document.removeEventListener("visibilitychange", handleVisibilityChange);
+  };
+ }, [clearAuth]);
+
  const value = useMemo(() => {
   return {
    token,
    user,
    isAuthLoading,
-   isAuthenticated: Boolean(token),
+   isAuthenticated: Boolean(token) && !authStorage.isTokenExpired(token),
    loginWithAuthData,
    logout,
    clearAuth,

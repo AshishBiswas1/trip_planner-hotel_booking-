@@ -56,6 +56,28 @@ export default function HotelStrips() {
  const [error, setError] = useState("");
  const [searchTerm, setSearchTerm] = useState("");
  const [currentPage, setCurrentPage] = useState(1);
+ const [cityFilter, setCityFilter] = useState("");
+ const [minRatingFilter, setMinRatingFilter] = useState("");
+ const [featuredFilter, setFeaturedFilter] = useState("all");
+ const [sortFilter, setSortFilter] = useState("-createdAt");
+
+ const hotelFilters = useMemo(() => {
+  const filters = { sort: sortFilter };
+
+  if (cityFilter) {
+   filters["location.city"] = cityFilter;
+  }
+
+  if (minRatingFilter) {
+   filters["rating[gte]"] = minRatingFilter;
+  }
+
+  if (featuredFilter === "featured") {
+   filters.featured = true;
+  }
+
+  return filters;
+ }, [cityFilter, minRatingFilter, featuredFilter, sortFilter]);
 
  useEffect(() => {
   let isMounted = true;
@@ -65,7 +87,7 @@ export default function HotelStrips() {
     setIsLoading(true);
     setError("");
 
-    const response = await hotelApi.getAll();
+    const response = await hotelApi.getAll(hotelFilters);
     const hotelList = response?.data?.data ?? [];
 
     if (isMounted) {
@@ -87,7 +109,7 @@ export default function HotelStrips() {
   return () => {
    isMounted = false;
   };
- }, []);
+ }, [hotelFilters]);
 
  const filteredHotels = useMemo(() => {
   const query = searchTerm.trim().toLowerCase();
@@ -110,7 +132,7 @@ export default function HotelStrips() {
 
  useEffect(() => {
   setCurrentPage(1);
- }, [searchTerm]);
+ }, [searchTerm, cityFilter, minRatingFilter, featuredFilter, sortFilter]);
 
  useEffect(() => {
   if (currentPage > totalPages) {
@@ -123,17 +145,7 @@ export default function HotelStrips() {
   return filteredHotels.slice(startIndex, startIndex + ITEMS_PER_PAGE);
  }, [filteredHotels, currentPage]);
 
- const sectionHeight = useMemo(
-  () => `${Math.max(currentHotels.length, 1) * 34}vh`,
-  [currentHotels.length],
- );
-
  const pageRange = getPageRange(currentPage, filteredHotels.length);
-
- const getTilt = (index) => {
-  const tiltPattern = [-1.25, 1.35, -1.05, 1.15];
-  return tiltPattern[index % tiltPattern.length];
- };
 
  const handlePreviousPage = () => {
   setCurrentPage((page) => Math.max(page - 1, 1));
@@ -175,8 +187,8 @@ export default function HotelStrips() {
       Hotel Collection
      </h1>
      <p className="mt-3 max-w-2xl text-sm text-slate-600 sm:text-base">
-      Scroll to explore. Each strip stacks upward and takes the spotlight while
-      the background stays in place.
+      Browse all hotels in the current page at once. Use pagination to move
+      through more results.
      </p>
 
      <div className="mt-6 rounded-3xl border border-white/70 bg-white/80 p-3 shadow-lg shadow-slate-700/5 backdrop-blur sm:p-4">
@@ -192,6 +204,61 @@ export default function HotelStrips() {
         suppressHydrationWarning
         className="w-full bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-400"
        />
+      </div>
+
+      <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+       <label className="flex flex-col gap-1 text-xs font-semibold text-slate-600">
+        City
+        <input
+         type="text"
+         value={cityFilter}
+         onChange={(event) => setCityFilter(event.target.value)}
+         placeholder="Any city"
+         className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700"
+        />
+       </label>
+
+       <label className="flex flex-col gap-1 text-xs font-semibold text-slate-600">
+        Min Rating
+        <select
+         value={minRatingFilter}
+         onChange={(event) => setMinRatingFilter(event.target.value)}
+         className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700"
+        >
+         <option value="">Any</option>
+         <option value="3">3+</option>
+         <option value="3.5">3.5+</option>
+         <option value="4">4+</option>
+         <option value="4.5">4.5+</option>
+        </select>
+       </label>
+
+       <label className="flex flex-col gap-1 text-xs font-semibold text-slate-600">
+        Featured
+        <select
+         value={featuredFilter}
+         onChange={(event) => setFeaturedFilter(event.target.value)}
+         className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700"
+        >
+         <option value="all">All</option>
+         <option value="featured">Featured only</option>
+        </select>
+       </label>
+
+       <label className="flex flex-col gap-1 text-xs font-semibold text-slate-600">
+        Sort
+        <select
+         value={sortFilter}
+         onChange={(event) => setSortFilter(event.target.value)}
+         className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700"
+        >
+         <option value="-createdAt">Newest</option>
+         <option value="rating">Rating: Low to High</option>
+         <option value="-rating">Rating: High to Low</option>
+         <option value="roomsAvailable">Rooms: Low to High</option>
+         <option value="-roomsAvailable">Rooms: High to Low</option>
+        </select>
+       </label>
       </div>
      </div>
     </motion.div>
@@ -234,30 +301,14 @@ export default function HotelStrips() {
        </span>
       </div>
 
-      <div
-       className="hotel-stack-list relative mx-auto mt-10 max-w-4xl"
-       style={{ height: sectionHeight }}
-      >
+      <div className="relative mx-auto mt-10 max-w-4xl space-y-4">
        {currentHotels.map((hotel, index) => {
-        const tilt = getTilt(index);
         const hotelHref = hotel?.slug ? `/hotels/${hotel.slug}` : null;
 
         return (
-         <motion.article
+         <article
           key={hotel._id || `${hotel.slug || hotel.name}-${index}`}
-          initial={{ opacity: 0, y: 55, scale: 0.98, rotate: tilt * 0.25 }}
-          whileInView={{ opacity: 1, y: 0, scale: 1, rotate: tilt }}
-          viewport={{ once: true, amount: 0.35 }}
-          transition={{
-           duration: 0.55,
-           ease: [0.22, 1, 0.36, 1],
-           delay: index * 0.05,
-          }}
-          className="hotel-stack-card"
-          style={{
-           zIndex: index + 1,
-           "--stack-shift": `${index % 2 === 0 ? -6 : 6}px`,
-          }}
+          className="relative"
          >
           {hotelHref ? (
            <Link href={hotelHref} className="block h-full focus:outline-none">
@@ -356,7 +407,7 @@ export default function HotelStrips() {
             </div>
            </div>
           )}
-         </motion.article>
+         </article>
         );
        })}
       </div>
