@@ -35,7 +35,7 @@ export default function Header() {
    icon: CalendarCheck,
   },
   {
-   href: "/hotels?booking=instant",
+   href: "/nearby",
    title: "Instant Booking Hotel Rooms",
    description: "Book immediately with real-time room availability.",
    icon: Zap,

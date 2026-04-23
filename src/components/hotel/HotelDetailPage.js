@@ -1,7 +1,5 @@
-import Link from "next/link";
 import Image from "next/image";
 import {
- ArrowLeft,
  BedDouble,
  IndianRupee,
  Landmark,
@@ -14,6 +12,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import HotelRoomBookingSection from "@/components/hotel/HotelRoomBookingSection";
 import HotelDetailMap from "@/components/hotel/HotelDetailMap";
+import HotelDetailBackButton from "@/components/hotel/HotelDetailBackButton";
 import { hotelApi } from "@/lib/api";
 
 const FALLBACK_HOTEL_IMAGES = [
@@ -230,13 +229,7 @@ export default async function HotelDetailPage({ slug }) {
       <div className="absolute inset-0 bg-slate-900/45" />
 
       <div className="absolute left-6 top-6 z-10 sm:left-8 sm:top-8">
-       <Link
-        href="/hotels"
-        className="inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/20 px-4 py-2 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/30"
-       >
-        <ArrowLeft className="h-4 w-4" />
-        Back to Hotels
-       </Link>
+       <HotelDetailBackButton fallbackHref="/hotels" />
       </div>
 
       <div className="absolute bottom-0 left-0 right-0 z-10 p-6 sm:p-10">
@@ -356,11 +349,7 @@ export default async function HotelDetailPage({ slug }) {
        </p>
       </div>
 
-      <HotelDetailMap
-       hotelCoordinates={hotelCoordinates}
-       mapStops={mapStops}
-       zoom={13}
-      />
+      <HotelDetailMap hotelCoordinates={hotelCoordinates} zoom={13} />
      </section>
 
      <section

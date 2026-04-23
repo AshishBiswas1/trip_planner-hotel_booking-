@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { ArrowLeft, BedDouble, MapPin } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -9,6 +10,9 @@ import RoomStrip from "@/components/hotel/RoomStrip";
 import { hotelApi } from "@/lib/api";
 
 export default function RoomStripsPage({ slug }) {
+ const searchParams = useSearchParams();
+ const fromParam = searchParams?.get("from") || "";
+
  const [hotel, setHotel] = useState(null);
  const [isLoadingHotel, setIsLoadingHotel] = useState(true);
  const [error, setError] = useState("");
@@ -86,7 +90,9 @@ export default function RoomStripsPage({ slug }) {
 
     <div className="relative mx-auto max-w-6xl">
      <Link
-      href={`/hotels/${slug}`}
+      href={`/hotels/${slug}${
+       fromParam ? `?from=${encodeURIComponent(fromParam)}` : ""
+      }`}
       className="mb-4 inline-flex items-center gap-2 text-slate-600 transition-colors duration-300 hover:text-blue-500"
      >
       <ArrowLeft className="h-5 w-5" />

@@ -1,13 +1,21 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { ShieldCheck } from "lucide-react";
 
 export default function HotelRoomBookingSection({ hotel }) {
+ const searchParams = useSearchParams();
+ const fromParam = searchParams?.get("from") || "";
+
  const amenities = Array.isArray(hotel?.amenities)
   ? hotel.amenities.slice(0, 10)
   : [];
- const hotelRoomsHref = hotel?.slug ? `/hotels/${hotel.slug}/rooms` : "/hotels";
+ const hotelRoomsHref = hotel?.slug
+  ? `/hotels/${hotel.slug}/rooms${
+     fromParam ? `?from=${encodeURIComponent(fromParam)}` : ""
+    }`
+  : "/hotels";
 
  return (
   <section

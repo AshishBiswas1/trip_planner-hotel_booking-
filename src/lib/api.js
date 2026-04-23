@@ -37,6 +37,7 @@ export const API_ROUTES = {
  },
  hotel: {
   all: "/hotel",
+  nearby: "/hotel/nearby",
   bySlug: (slug) => `/hotel/${slug}`,
  },
  room: {
@@ -270,6 +271,13 @@ export const hotelApi = {
   apiRequest(`${API_ROUTES.hotel.all}${buildQueryString(filters)}`, {
    method: "GET",
   }),
+ getNearby: ({ location, distance } = {}) =>
+  apiRequest(
+   `${API_ROUTES.hotel.nearby}${buildQueryString({ location, distance })}`,
+   {
+    method: "GET",
+   },
+  ),
  getBySlug: (slug) =>
   apiRequest(API_ROUTES.hotel.bySlug(slug), {
    method: "GET",
