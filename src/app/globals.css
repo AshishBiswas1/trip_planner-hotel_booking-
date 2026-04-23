@@ -1,5 +1,198 @@
 @import "tailwindcss";
+
+:root {
+ --scrollbar-size: 12px;
+ --scrollbar-track: #cbd5e1;
+ --scrollbar-thumb: linear-gradient(180deg, #06b6d4 0%, #14b8a6 100%);
+ --scrollbar-thumb-hover: linear-gradient(180deg, #0891b2 0%, #0f766e 100%);
+ --scrollbar-border: #f8fafc;
+ --scrollbar-button-bg: #334155;
+ --scrollbar-button-icon: #cbd5e1;
+}
+
 body {
  background-color: rgb(249 250 251);
  color: rgb(31 41 55);
+}
+
+/* Firefox */
+html,
+body,
+* {
+ scrollbar-width: thin;
+ scrollbar-color: #14b8a6 var(--scrollbar-track);
+}
+
+/* Chromium, Edge, Safari */
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+*::-webkit-scrollbar {
+ width: var(--scrollbar-size);
+ height: var(--scrollbar-size);
+}
+
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track,
+*::-webkit-scrollbar-track {
+ background: var(--scrollbar-track);
+ border-radius: 9999px;
+}
+
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb,
+*::-webkit-scrollbar-thumb {
+ background: var(--scrollbar-thumb);
+ border-radius: 9999px;
+ border: 2px solid var(--scrollbar-border);
+}
+
+html::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover,
+*::-webkit-scrollbar-thumb:hover {
+ background: var(--scrollbar-thumb-hover);
+}
+
+html::-webkit-scrollbar-button,
+body::-webkit-scrollbar-button,
+*::-webkit-scrollbar-button {
+ background-color: var(--scrollbar-button-bg);
+}
+
+html::-webkit-scrollbar-button:single-button,
+body::-webkit-scrollbar-button:single-button,
+*::-webkit-scrollbar-button:single-button {
+ background-color: var(--scrollbar-button-bg);
+ display: block;
+}
+
+html::-webkit-scrollbar-button:vertical:decrement,
+body::-webkit-scrollbar-button:vertical:decrement,
+*::-webkit-scrollbar-button:vertical:decrement,
+html::-webkit-scrollbar-button:vertical:increment,
+body::-webkit-scrollbar-button:vertical:increment,
+*::-webkit-scrollbar-button:vertical:increment {
+ background-position: center;
+ background-repeat: no-repeat;
+ background-size: 7px 7px;
+}
+
+html::-webkit-scrollbar-button:vertical:decrement,
+body::-webkit-scrollbar-button:vertical:decrement,
+*::-webkit-scrollbar-button:vertical:decrement {
+ background-image:
+  linear-gradient(45deg, transparent 50%, var(--scrollbar-button-icon) 50%),
+  linear-gradient(-45deg, transparent 50%, var(--scrollbar-button-icon) 50%);
+ background-position:
+  calc(50% - 3px) 55%,
+  calc(50% + 1px) 55%;
+}
+
+html::-webkit-scrollbar-button:vertical:increment,
+body::-webkit-scrollbar-button:vertical:increment,
+*::-webkit-scrollbar-button:vertical:increment {
+ background-image:
+  linear-gradient(135deg, transparent 50%, var(--scrollbar-button-icon) 50%),
+  linear-gradient(-135deg, transparent 50%, var(--scrollbar-button-icon) 50%);
+ background-position:
+  calc(50% - 3px) 45%,
+  calc(50% + 1px) 45%;
+}
+
+html::-webkit-scrollbar-button:hover,
+body::-webkit-scrollbar-button:hover,
+*::-webkit-scrollbar-button:hover {
+ background-color: #1e293b;
+}
+
+html::-webkit-scrollbar-corner,
+body::-webkit-scrollbar-corner,
+*::-webkit-scrollbar-corner {
+ background: var(--scrollbar-track);
+}
+
+.hotel-page-bg {
+ background:
+  radial-gradient(
+   circle at 10% 10%,
+   rgba(103, 232, 249, 0.35),
+   transparent 35%
+  ),
+  radial-gradient(circle at 90% 0%, rgba(167, 243, 208, 0.35), transparent 30%),
+  linear-gradient(180deg, #f8fafc 0%, #eef2ff 48%, #ecfeff 100%);
+ background-attachment: fixed;
+}
+
+.hotel-page-overlay {
+ background-image:
+  linear-gradient(
+   120deg,
+   rgba(255, 255, 255, 0.35) 0%,
+   rgba(255, 255, 255, 0) 48%
+  ),
+  radial-gradient(
+   circle at 80% 30%,
+   rgba(255, 255, 255, 0.6),
+   rgba(255, 255, 255, 0)
+  );
+}
+
+.hotel-stack-card {
+ position: sticky;
+ top: calc(var(--hotel-stack-top, 102px) + var(--stack-shift, 0px));
+ margin-bottom: 6vh;
+}
+
+.hotel-stack-list {
+ --hotel-stack-top: 102px;
+}
+
+@media (max-width: 1024px) {
+ .hotel-stack-list {
+  --hotel-stack-top: 92px;
+ }
+}
+
+@media (max-width: 640px) {
+ .hotel-stack-list {
+  --hotel-stack-top: 84px;
+ }
+}
+
+.review-marquee-track {
+ display: flex;
+ gap: 1rem;
+ width: max-content;
+ animation: review-marquee 22s linear infinite;
+}
+
+.review-marquee-track:hover {
+ animation-play-state: paused;
+}
+
+@keyframes review-marquee {
+ 0% {
+  transform: translateX(0);
+ }
+
+ 100% {
+  transform: translateX(-50%);
+ }
+}
+
+.map-stop-pulse {
+ animation: map-pulse 2s ease-in-out infinite;
+}
+
+@keyframes map-pulse {
+ 0% {
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5);
+ }
+
+ 70% {
+  box-shadow: 0 0 0 12px rgba(16, 185, 129, 0);
+ }
+
+ 100% {
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+ }
 }
