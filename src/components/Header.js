@@ -119,6 +119,12 @@ export default function Header() {
         Home
        </Link>
        <Link
+        href="/plan-trip"
+        className="text-sm font-semibold text-slate-700 transition hover:text-cyan-700"
+       >
+        Plan Trip
+       </Link>
+       <Link
         href="/#about"
         className="text-sm font-semibold text-slate-700 transition hover:text-cyan-700"
        >
@@ -273,6 +279,13 @@ export default function Header() {
        onClick={() => setIsMobileOpen(false)}
       >
        About
+      </Link>
+      <Link
+       href="/plan-trip"
+       className="block rounded-lg px-2 py-2 text-sm font-semibold text-slate-700"
+       onClick={() => setIsMobileOpen(false)}
+      >
+       Plan Trip
       </Link>
       <Link
        href="/#contact"

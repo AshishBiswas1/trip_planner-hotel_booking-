@@ -47,6 +47,10 @@ export const API_ROUTES = {
  booking: {
   create: (hotelId) => `/booking/book/${hotelId}`,
  },
+ trip: {
+  all: "/trip",
+  byId: (id) => `/trip/${id}`,
+ },
 };
 
 function buildQueryString(params = {}) {
@@ -310,6 +314,31 @@ export const bookingApi = {
   return apiRequest(API_ROUTES.booking.create(hotelId), {
    method: "POST",
    body: payload,
+   token,
+  });
+ },
+};
+
+export const tripApi = {
+ createTrip: (payload) => {
+  const token = authStorage.getToken();
+  return apiRequest(API_ROUTES.trip.all, {
+   method: "POST",
+   body: payload,
+   token,
+  });
+ },
+ getUserTrips: (filters = {}) => {
+  const token = authStorage.getToken();
+  return apiRequest(`${API_ROUTES.trip.all}${buildQueryString(filters)}`, {
+   method: "GET",
+   token,
+  });
+ },
+ getTrip: (id) => {
+  const token = authStorage.getToken();
+  return apiRequest(API_ROUTES.trip.byId(id), {
+   method: "GET",
    token,
   });
  },
