@@ -21,7 +21,7 @@ const ITEMS_PER_PAGE = 20;
 
 function getHotelImage(hotel) {
  if (Array.isArray(hotel.images) && hotel.images.length > 0) {
-  return hotel.images[0];
+  return "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80";
  }
 
  return "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80";
