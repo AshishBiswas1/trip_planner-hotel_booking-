@@ -44,19 +44,19 @@ export default function Header() {
 
  const transportItems = [
   {
-   href: "/?booking=flights",
+   href: "/flights",
    title: "Flights",
    description: "Compare and book flights across routes.",
    icon: Plane,
   },
   {
-   href: "/?booking=buses",
+   href: "/buses",
    title: "Buses",
    description: "Find intercity buses with flexible times.",
    icon: Bus,
   },
   {
-   href: "/?booking=trains",
+   href: "/trains",
    title: "Trains",
    description: "Browse train options and reserve tickets.",
    icon: Train,

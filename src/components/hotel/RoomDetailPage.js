@@ -13,7 +13,6 @@ import {
  Sparkles,
  Users,
 } from "lucide-react";
-import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import RoomBookingModal from "@/components/hotel/RoomBookingModal";
 import { hotelApi, roomApi } from "@/lib/api";
@@ -129,7 +128,6 @@ export default function RoomDetailPage({ slug, roomId }) {
  if (isLoading) {
   return (
    <main className="hotel-page-bg min-h-screen">
-    <Header />
     <section className="relative px-4 pb-20 pt-10 sm:px-6 lg:px-8">
      <div className="hotel-page-overlay pointer-events-none absolute inset-0" />
      <div className="relative mx-auto max-w-6xl rounded-3xl border border-slate-200/80 bg-white/80 p-8 text-center text-slate-600 backdrop-blur">
@@ -144,7 +142,6 @@ export default function RoomDetailPage({ slug, roomId }) {
  if (error) {
   return (
    <main className="hotel-page-bg min-h-screen">
-    <Header />
     <section className="relative px-4 pb-20 pt-10 sm:px-6 lg:px-8">
      <div className="hotel-page-overlay pointer-events-none absolute inset-0" />
      <div className="relative mx-auto max-w-6xl rounded-3xl border border-rose-300 bg-rose-50/90 p-8 text-center text-rose-700 backdrop-blur">
@@ -159,8 +156,6 @@ export default function RoomDetailPage({ slug, roomId }) {
  return (
   <>
    <main className="hotel-page-bg min-h-screen">
-    <Header />
-
     <section className="relative px-4 pb-20 pt-8 sm:px-6 lg:px-8">
      <div className="hotel-page-overlay pointer-events-none absolute inset-0" />
 
@@ -178,11 +173,11 @@ export default function RoomDetailPage({ slug, roomId }) {
 
        <div className="absolute left-6 top-6 z-10 sm:left-8 sm:top-8">
         <Link
-         href={`/hotels/${slug}/rooms`}
+         href="/"
          className="inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/20 px-4 py-2 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/30"
         >
          <ArrowLeft className="h-4 w-4" />
-         Back to Rooms
+         Back to Home
         </Link>
        </div>
 

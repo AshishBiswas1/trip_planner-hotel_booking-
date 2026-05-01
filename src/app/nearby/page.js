@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { LocateFixed, Search, SlidersHorizontal } from "lucide-react";
-import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import HotelStrip from "@/components/hotel/HotelStrip";
 import NearbyHotelsGoogleMap from "@/components/hotel/NearbyHotelsGoogleMap";
@@ -159,8 +158,6 @@ export default function NearbyHotelsPage() {
 
  return (
   <main className="hotel-page-bg min-h-screen">
-   <Header />
-
    <section className="hotel-page-overlay px-4 pb-14 pt-8 sm:px-6 lg:px-8">
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
      <div className="overflow-hidden rounded-3xl border border-white/75 bg-gradient-to-br from-slate-100 to-cyan-50 shadow-xl shadow-slate-900/10">

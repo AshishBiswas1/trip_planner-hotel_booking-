@@ -13,7 +13,6 @@ import {
  Search,
 } from "lucide-react";
 import Image from "next/image";
-import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { hotelApi } from "@/lib/api";
 
@@ -159,8 +158,6 @@ export default function HotelStrips() {
 
  return (
   <main className="hotel-page-bg min-h-screen">
-   <Header />
-
    <section className="relative px-4 pb-40 pt-10 sm:px-6 lg:px-8">
     <div className="hotel-page-overlay pointer-events-none absolute inset-0" />
 

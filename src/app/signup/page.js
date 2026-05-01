@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
 import CustomAlert from "@/components/CustomAlert";
 import { authApi } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
@@ -52,7 +51,6 @@ export default function SignupPage() {
 
  return (
   <main>
-   <Header />
    <section className="min-h-[calc(100vh-88px)] flex items-center justify-center px-4 py-12">
     <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
      <Link

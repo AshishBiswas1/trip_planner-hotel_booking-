@@ -4,67 +4,10 @@ import { useEffect, useMemo } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 
-export default function HotelDetailBackButton({ fallbackHref = "/hotels" }) {
+export default function HotelDetailBackButton({ fallbackHref = "/" }) {
  const router = useRouter();
- const pathname = usePathname();
- const searchParams = useSearchParams();
-
- const fromParam = searchParams?.get("from") || "";
- const decodedFromParam = fromParam ? decodeURIComponent(fromParam) : "";
-
- const storageKey = useMemo(
-  () => `hotel-detail-origin:${pathname || "unknown"}`,
-  [pathname],
- );
-
- useEffect(() => {
-  if (typeof window === "undefined" || !pathname) {
-   return;
-  }
-
-  let referrerUrl;
-
-  try {
-   referrerUrl = document.referrer ? new URL(document.referrer) : null;
-  } catch {
-   referrerUrl = null;
-  }
-
-  if (!referrerUrl || referrerUrl.origin !== window.location.origin) {
-   return;
-  }
-
-  const referrerPath = `${referrerUrl.pathname}${referrerUrl.search}${referrerUrl.hash}`;
-  const isRoomListReferrer = /\/hotels\/[^/]+\/rooms/.test(
-   referrerUrl.pathname,
-  );
-
-  if (isRoomListReferrer || referrerUrl.pathname === pathname) {
-   return;
-  }
-
-  sessionStorage.setItem(storageKey, referrerPath);
- }, [pathname, storageKey]);
 
  const handleBack = () => {
-  if (typeof window !== "undefined") {
-   if (decodedFromParam && decodedFromParam !== pathname) {
-    router.push(decodedFromParam);
-    return;
-   }
-   const rememberedOrigin = sessionStorage.getItem(storageKey);
-
-   if (rememberedOrigin) {
-    router.push(rememberedOrigin);
-    return;
-   }
-
-   if (window.history.length > 1) {
-    router.back();
-    return;
-   }
-  }
-
   router.push(fallbackHref);
  };
 
