@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ArrowLeft, BedDouble, MapPin } from "lucide-react";
-import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import RoomStrip from "@/components/hotel/RoomStrip";
 import { hotelApi } from "@/lib/api";
@@ -83,20 +82,16 @@ export default function RoomStripsPage({ slug }) {
 
  return (
   <main className="hotel-page-bg min-h-screen">
-   <Header />
-
    <section className="relative px-4 pb-16 pt-8 sm:px-6 lg:px-8">
     <div className="hotel-page-overlay pointer-events-none absolute inset-0" />
 
     <div className="relative mx-auto max-w-6xl">
      <Link
-      href={`/hotels/${slug}${
-       fromParam ? `?from=${encodeURIComponent(fromParam)}` : ""
-      }`}
+      href="/"
       className="mb-4 inline-flex items-center gap-2 text-slate-600 transition-colors duration-300 hover:text-blue-500"
      >
       <ArrowLeft className="h-5 w-5" />
-      <span className="font-medium">Back to Hotel</span>
+      <span className="font-medium">Back to Home</span>
      </Link>
 
      <div className="rounded-3xl border border-white/80 bg-white/90 p-6 shadow-xl shadow-slate-700/10 backdrop-blur sm:p-8">

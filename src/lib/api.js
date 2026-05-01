@@ -51,6 +51,14 @@ export const API_ROUTES = {
   all: "/trip",
   byId: (id) => `/trip/${id}`,
  },
+ travel: {
+  trainSearch: "/travel/trains/search",
+  trainSchedule: "/travel/trains/schedule",
+  flightSearch: "/travel/flights/search",
+  flightSchedule: "/travel/flights/schedule",
+  busSearch: "/travel/buses/search",
+  busStops: "/travel/buses/stops",
+ },
 };
 
 function buildQueryString(params = {}) {
@@ -319,6 +327,17 @@ export const bookingApi = {
  },
 };
 
+export const paymentApi = {
+ createTravelPayment: (payload) => {
+  const token = authStorage.getToken();
+  return apiRequest("/booking/book-travel", {
+   method: "POST",
+   body: payload,
+   token,
+  });
+ },
+};
+
 export const tripApi = {
  createTrip: (payload) => {
   const token = authStorage.getToken();
@@ -342,6 +361,51 @@ export const tripApi = {
    token,
   });
  },
+};
+
+export const travelApi = {
+ searchTrainsByRoute: ({ from, to, travelDate } = {}) =>
+  apiRequest(
+   `${API_ROUTES.travel.trainSearch}${buildQueryString({ from, to, travelDate })}`,
+   {
+    method: "GET",
+   },
+  ),
+ getTrainSchedule: ({ trainNo, from, to, travelDate } = {}) =>
+  apiRequest(
+   `${API_ROUTES.travel.trainSchedule}${buildQueryString({ trainNo, from, to, travelDate })}`,
+   {
+    method: "GET",
+   },
+  ),
+ searchFlightsByRoute: ({ from, to, travelDate } = {}) =>
+  apiRequest(
+   `${API_ROUTES.travel.flightSearch}${buildQueryString({ from, to, travelDate })}`,
+   {
+    method: "GET",
+   },
+  ),
+ getFlightSchedule: ({ flightNo } = {}) =>
+  apiRequest(
+   `${API_ROUTES.travel.flightSchedule}${buildQueryString({ flightNo })}`,
+   {
+    method: "GET",
+   },
+  ),
+ searchBusesByRoute: ({ from, to, travelDate } = {}) =>
+  apiRequest(
+   `${API_ROUTES.travel.busSearch}${buildQueryString({ from, to, travelDate })}`,
+   {
+    method: "GET",
+   },
+  ),
+ getBusStops: ({ busId, travelDate } = {}) =>
+  apiRequest(
+   `${API_ROUTES.travel.busStops}${buildQueryString({ busId, travelDate })}`,
+   {
+    method: "GET",
+   },
+  ),
 };
 
 export {

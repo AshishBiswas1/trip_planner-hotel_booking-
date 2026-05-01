@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { tripApi } from "@/lib/api";
+import { ArrowLeft } from "lucide-react";
 import {
  GOOGLE_MAPS_API_KEY,
  ROUTE_TEST_FALLBACK_DESTINATION,
@@ -617,6 +619,16 @@ export default function PlanTripPage() {
     initial="hidden"
     animate="show"
    >
+    <motion.div variants={itemVariants} className="mb-4 sm:mb-6">
+     <Link
+      href="/"
+      className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:-translate-x-0.5 hover:border-cyan-300 hover:text-cyan-700"
+     >
+      <ArrowLeft className="h-4 w-4" />
+      Back to Home
+     </Link>
+    </motion.div>
+
     <HeroHeader endDate={endDate} routeCount={routeOptions.length} />
 
     <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">

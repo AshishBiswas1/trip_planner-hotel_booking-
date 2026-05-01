@@ -8,7 +8,6 @@ import {
  Star,
  Users,
 } from "lucide-react";
-import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import HotelRoomBookingSection from "@/components/hotel/HotelRoomBookingSection";
 import HotelDetailMap from "@/components/hotel/HotelDetailMap";
@@ -164,7 +163,6 @@ export default async function HotelDetailPage({ slug }) {
  if (error) {
   return (
    <main className="hotel-page-bg min-h-screen">
-    <Header />
     <section className="relative px-4 pb-20 pt-10 sm:px-6 lg:px-8">
      <div className="hotel-page-overlay pointer-events-none absolute inset-0" />
      <div className="relative mx-auto max-w-6xl">
@@ -181,7 +179,6 @@ export default async function HotelDetailPage({ slug }) {
  if (!hotel) {
   return (
    <main className="hotel-page-bg min-h-screen">
-    <Header />
     <section className="relative px-4 pb-20 pt-10 sm:px-6 lg:px-8">
      <div className="hotel-page-overlay pointer-events-none absolute inset-0" />
      <div className="relative mx-auto max-w-6xl">
@@ -208,8 +205,6 @@ export default async function HotelDetailPage({ slug }) {
 
  return (
   <main className="hotel-page-bg min-h-screen">
-   <Header />
-
    <section className="relative px-4 pb-20 pt-8 sm:px-6 lg:px-8">
     <div className="hotel-page-overlay pointer-events-none absolute inset-0" />
 
@@ -229,7 +224,7 @@ export default async function HotelDetailPage({ slug }) {
       <div className="absolute inset-0 bg-slate-900/45" />
 
       <div className="absolute left-6 top-6 z-10 sm:left-8 sm:top-8">
-       <HotelDetailBackButton fallbackHref="/hotels" />
+       <HotelDetailBackButton fallbackHref="/" />
       </div>
 
       <div className="absolute bottom-0 left-0 right-0 z-10 p-6 sm:p-10">
