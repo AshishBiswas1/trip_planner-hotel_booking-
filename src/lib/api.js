@@ -104,7 +104,18 @@ async function apiRequest(route, options = {}) {
   body: body ? JSON.stringify(body) : undefined,
  };
 
- const response = await fetch(requestUrl, fetchOptions);
+ let response;
+ try {
+  response = await fetch(requestUrl, fetchOptions);
+ } catch (err) {
+  const networkError = new Error(
+   err?.message ||
+    "Network error. Could not reach the API — check your connection or CORS settings.",
+  );
+  networkError.isNetworkError = true;
+  networkError.original = err;
+  throw networkError;
+ }
 
  const rawResponse = await response.text();
  let data = {};
@@ -118,8 +129,15 @@ async function apiRequest(route, options = {}) {
  }
 
  if (!response.ok) {
-  const error = new Error(data.message || "Request failed. Please try again.");
+  const serverMessage =
+   data?.message ||
+   data?.error ||
+   (data?.errors && data.errors[0]?.message) ||
+   response.statusText ||
+   `Request failed with status ${response.status}`;
+  const error = new Error(serverMessage);
   error.status = response.status;
+  error.response = data;
   throw error;
  }
 
