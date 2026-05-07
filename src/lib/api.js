@@ -1,5 +1,6 @@
 const API_BASE_URL =
- process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api/v1";
+ process.env.NEXT_PUBLIC_API_BASE_URL ||
+ (process.env.NODE_ENV === "development" ? "http://localhost:8000/api/v1" : "");
 const TOKEN_STORAGE_KEY = "token";
 const TOKEN_COOKIE_KEY = "auth_token";
 const USER_STORAGE_KEY = "auth_user";
@@ -78,6 +79,12 @@ function buildQueryString(params = {}) {
 async function apiRequest(route, options = {}) {
  const { method = "GET", body, token, headers = {} } = options;
 
+ if (!API_BASE_URL) {
+  throw new Error(
+   "API base URL is not configured. Set NEXT_PUBLIC_API_BASE_URL in your frontend environment.",
+  );
+ }
+
  const requestHeaders = {
   ...headers,
  };
@@ -90,11 +97,22 @@ async function apiRequest(route, options = {}) {
   requestHeaders.Authorization = `Bearer ${token}`;
  }
 
- const response = await fetch(`${API_BASE_URL}${route}`, {
+ const requestUrl = `${API_BASE_URL}${route}`;
+ const fetchOptions = {
   method,
   headers: requestHeaders,
   body: body ? JSON.stringify(body) : undefined,
- });
+ };
+
+ // Mark localhost requests as private-network requests for browser PNA checks.
+ if (
+  typeof window !== "undefined" &&
+  /localhost|127\.0\.0\.1/.test(requestUrl)
+ ) {
+  fetchOptions.targetAddressSpace = "private";
+ }
+
+ const response = await fetch(requestUrl, fetchOptions);
 
  const rawResponse = await response.text();
  let data = {};

@@ -189,6 +189,8 @@ export default function NearbyHotelsPage() {
         <SlidersHorizontal className="h-3.5 w-3.5 text-slate-600" />
         <span className="text-xs font-semibold text-slate-700">Radius</span>
         <input
+         id="radius"
+         name="radius"
          type="number"
          min="1"
          max="100"
