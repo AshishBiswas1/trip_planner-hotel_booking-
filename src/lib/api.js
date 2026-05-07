@@ -1,6 +1,26 @@
-const API_BASE_URL =
+let API_BASE_URL =
  process.env.NEXT_PUBLIC_API_BASE_URL ||
  (process.env.NODE_ENV === "development" ? "http://localhost:8000/api/v1" : "");
+
+// Normalize API base: if a host is provided without any `/api` path, assume
+// the backend uses `/api/v1` (common for this project) and append it. This
+// helps preview/tunnel URLs (ngrok) that users often set to the tunnel root.
+if (typeof API_BASE_URL === "string" && API_BASE_URL.trim()) {
+ API_BASE_URL = API_BASE_URL.replace(/\/+$/g, "");
+ if (!/\/api(\/|$)/i.test(API_BASE_URL)) {
+  const normalized = `${API_BASE_URL}/api/v1`;
+  // Show a helpful console warning in browsers so deployed previews reveal
+  // what base URL the app is actually using.
+  if (typeof window !== "undefined" && window.console && console.warn) {
+   console.warn(
+    "Normalized API_BASE_URL:",
+    normalized,
+    "(appended /api/v1 because provided URL had no /api segment)",
+   );
+  }
+  API_BASE_URL = normalized;
+ }
+}
 const TOKEN_STORAGE_KEY = "token";
 const TOKEN_COOKIE_KEY = "auth_token";
 const USER_STORAGE_KEY = "auth_user";
@@ -85,6 +105,27 @@ async function apiRequest(route, options = {}) {
   );
  }
 
+ // Helpful developer/runtime check: when the frontend is served over HTTPS (deployed)
+ // the browser will block requests to http://localhost or 127.0.0.1 due to mixed
+ // content / address-space rules. Detect that early and surface a clear message
+ // instead of a generic "fetch failed" network error.
+ if (typeof window !== "undefined") {
+  try {
+   const isHttps = window.location.protocol === "https:";
+   const isLocalhostTarget =
+    /(^https?:\/\/)(localhost|127\.0\.0\.1)(:\d+)?/.test(API_BASE_URL);
+
+   if (isHttps && isLocalhostTarget) {
+    throw new Error(
+     "This frontend is served over HTTPS and cannot reach a backend at http://localhost or 127.0.0.1.\nSet NEXT_PUBLIC_API_BASE_URL to a publicly reachable backend URL or use a local tunneling tool (ngrok/localtunnel) for preview testing.",
+    );
+   }
+  } catch (err) {
+   // Rethrow so callers receive the clear error message.
+   throw err;
+  }
+ }
+
  const requestHeaders = {
   ...headers,
  };
@@ -97,7 +138,18 @@ async function apiRequest(route, options = {}) {
   requestHeaders.Authorization = `Bearer ${token}`;
  }
 
- const requestUrl = `${API_BASE_URL}${route}`;
+ // Ensure the effective base URL contains an `/api` segment. Some deployments
+ // or preview env vars point to the tunnel root (e.g. https://abc.ngrok.io)
+ // — in that case ensure we call (root)/api/v1/<route> instead of root/<route>.
+ let effectiveBase = (API_BASE_URL || "").replace(/\/+$/g, "");
+ if (!/\/api(\/|$)/i.test(effectiveBase)) {
+  effectiveBase = `${effectiveBase}/api/v1`;
+  if (typeof window !== "undefined" && console && console.warn) {
+   console.warn("Using normalized API base:", effectiveBase);
+  }
+ }
+
+ const requestUrl = `${effectiveBase}${route}`;
  const fetchOptions = {
   method,
   headers: requestHeaders,
