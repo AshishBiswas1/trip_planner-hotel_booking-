@@ -29,6 +29,8 @@ export const API_ROUTES = {
  user: {
   register: "/user/register",
   login: "/user/login",
+  forgetPassword: "/user/forgot-password",
+  resetPassword: (token) => `/user/reset-password/${token}`,
   logout: "/user/logout",
   me: "/user/me",
   deleteMe: "/user/deleteMe",
@@ -264,6 +266,16 @@ export const authApi = {
  login: (payload) =>
   apiRequest(API_ROUTES.user.login, {
    method: "POST",
+   body: payload,
+  }),
+ forgetPassword: (payload) =>
+  apiRequest(API_ROUTES.user.forgetPassword, {
+   method: "POST",
+   body: payload,
+  }),
+ resetPassword: (token, payload) =>
+  apiRequest(API_ROUTES.user.resetPassword(token), {
+   method: "PATCH",
    body: payload,
   }),
  getMe: (token) =>
