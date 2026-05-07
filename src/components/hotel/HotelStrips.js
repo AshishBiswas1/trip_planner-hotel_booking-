@@ -81,13 +81,22 @@ export default function HotelStrips() {
  useEffect(() => {
   let isMounted = true;
 
+  function extractHotelList(response) {
+   if (Array.isArray(response?.data?.data)) return response.data.data;
+   if (Array.isArray(response?.data)) return response.data;
+   if (Array.isArray(response?.hotels)) return response.hotels;
+   if (Array.isArray(response?.results)) return response.results;
+   if (Array.isArray(response?.data?.results)) return response.data.results;
+   return [];
+  }
+
   async function loadHotels() {
    try {
     setIsLoading(true);
     setError("");
 
     const response = await hotelApi.getAll(hotelFilters);
-    const hotelList = response?.data?.data ?? [];
+    const hotelList = extractHotelList(response);
 
     if (isMounted) {
      setHotels(hotelList);
