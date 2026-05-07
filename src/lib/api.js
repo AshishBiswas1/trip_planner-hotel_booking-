@@ -104,14 +104,6 @@ async function apiRequest(route, options = {}) {
   body: body ? JSON.stringify(body) : undefined,
  };
 
- // Mark localhost requests as private-network requests for browser PNA checks.
- if (
-  typeof window !== "undefined" &&
-  /localhost|127\.0\.0\.1/.test(requestUrl)
- ) {
-  fetchOptions.targetAddressSpace = "private";
- }
-
  const response = await fetch(requestUrl, fetchOptions);
 
  const rawResponse = await response.text();
