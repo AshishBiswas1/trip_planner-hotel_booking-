@@ -1,30 +1,9 @@
-let API_BASE_URL =
+const API_BASE_URL =
  process.env.NEXT_PUBLIC_API_BASE_URL ||
  (process.env.NODE_ENV === "development" ? "http://localhost:8000/api/v1" : "");
-
-// Normalize API base: if a host is provided without any `/api` path, assume
-// the backend uses `/api/v1` (common for this project) and append it. This
-// helps preview/tunnel URLs (ngrok) that users often set to the tunnel root.
-if (typeof API_BASE_URL === "string" && API_BASE_URL.trim()) {
- API_BASE_URL = API_BASE_URL.replace(/\/+$/g, "");
- if (!/\/api(\/|$)/i.test(API_BASE_URL)) {
-  const normalized = `${API_BASE_URL}/api/v1`;
-  // Show a helpful console warning in browsers so deployed previews reveal
-  // what base URL the app is actually using.
-  if (typeof window !== "undefined" && window.console && console.warn) {
-   console.warn(
-    "Normalized API_BASE_URL:",
-    normalized,
-    "(appended /api/v1 because provided URL had no /api segment)",
-   );
-  }
-  API_BASE_URL = normalized;
- }
-}
 const TOKEN_STORAGE_KEY = "token";
 const TOKEN_COOKIE_KEY = "auth_token";
 const USER_STORAGE_KEY = "auth_user";
-const LOCAL_DIRECT_API_BASE = "http://localhost:8000/api/v1";
 const TOKEN_EXPIRY_SKEW_MS = 0;
 const LEGACY_TOKEN_STORAGE_KEYS = ["auth_token", "jwt", "accessToken"];
 const LEGACY_USER_STORAGE_KEYS = ["user", "authUser", "currentUser"];
@@ -100,18 +79,7 @@ function buildQueryString(params = {}) {
 async function apiRequest(route, options = {}) {
  const { method = "GET", body, token, headers = {} } = options;
 
- let runtimeApiBase = API_BASE_URL;
-
- // If the frontend itself is running locally, prefer talking to the local
- // backend directly even when a remote/tunnel URL is configured.
- if (typeof window !== "undefined") {
-  const browserHost = window.location.hostname;
-  if (browserHost === "localhost" || browserHost === "127.0.0.1") {
-   runtimeApiBase = LOCAL_DIRECT_API_BASE;
-  }
- }
-
- if (!runtimeApiBase) {
+ if (!API_BASE_URL) {
   throw new Error(
    "API base URL is not configured. Set NEXT_PUBLIC_API_BASE_URL in your frontend environment.",
   );
@@ -121,22 +89,9 @@ async function apiRequest(route, options = {}) {
  // the browser will block requests to http://localhost or 127.0.0.1 due to mixed
  // content / address-space rules. Detect that early and surface a clear message
  // instead of a generic "fetch failed" network error.
- if (typeof window !== "undefined") {
-  try {
-   const isHttps = window.location.protocol === "https:";
-   const isLocalhostTarget =
-    /(^https?:\/\/)(localhost|127\.0\.0\.1)(:\d+)?/.test(runtimeApiBase);
-
-   if (isHttps && isLocalhostTarget) {
-    throw new Error(
-     "This frontend is served over HTTPS and cannot reach a backend at http://localhost or 127.0.0.1.\nSet NEXT_PUBLIC_API_BASE_URL to a publicly reachable backend URL or use a local tunneling tool (ngrok/localtunnel) for preview testing.",
-    );
-   }
-  } catch (err) {
-   // Rethrow so callers receive the clear error message.
-   throw err;
-  }
- }
+ // No runtime base checks — use the configured `API_BASE_URL` as-is so the
+ // frontend connects directly to whatever URL is provided (local http, https
+ // tunnel, or deployed backend).
 
  const requestHeaders = {
   ...headers,
@@ -153,15 +108,7 @@ async function apiRequest(route, options = {}) {
  // Ensure the effective base URL contains an `/api` segment. Some deployments
  // or preview env vars point to the tunnel root (e.g. https://abc.ngrok.io)
  // — in that case ensure we call (root)/api/v1/<route> instead of root/<route>.
- let effectiveBase = (runtimeApiBase || "").replace(/\/+$/g, "");
- if (!/\/api(\/|$)/i.test(effectiveBase)) {
-  effectiveBase = `${effectiveBase}/api/v1`;
-  if (typeof window !== "undefined" && console && console.warn) {
-   console.warn("Using normalized API base:", effectiveBase);
-  }
- }
-
- const requestUrl = `${effectiveBase}${route}`;
+ const requestUrl = `${API_BASE_URL.replace(/\/+$/g, "")}${route}`;
  const fetchOptions = {
   method,
   headers: requestHeaders,
