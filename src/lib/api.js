@@ -24,6 +24,7 @@ if (typeof API_BASE_URL === "string" && API_BASE_URL.trim()) {
 const TOKEN_STORAGE_KEY = "token";
 const TOKEN_COOKIE_KEY = "auth_token";
 const USER_STORAGE_KEY = "auth_user";
+const LOCAL_DIRECT_API_BASE = "http://localhost:8000/api/v1";
 const TOKEN_EXPIRY_SKEW_MS = 0;
 const LEGACY_TOKEN_STORAGE_KEYS = ["auth_token", "jwt", "accessToken"];
 const LEGACY_USER_STORAGE_KEYS = ["user", "authUser", "currentUser"];
@@ -99,7 +100,18 @@ function buildQueryString(params = {}) {
 async function apiRequest(route, options = {}) {
  const { method = "GET", body, token, headers = {} } = options;
 
- if (!API_BASE_URL) {
+ let runtimeApiBase = API_BASE_URL;
+
+ // If the frontend itself is running locally, prefer talking to the local
+ // backend directly even when a remote/tunnel URL is configured.
+ if (typeof window !== "undefined") {
+  const browserHost = window.location.hostname;
+  if (browserHost === "localhost" || browserHost === "127.0.0.1") {
+   runtimeApiBase = LOCAL_DIRECT_API_BASE;
+  }
+ }
+
+ if (!runtimeApiBase) {
   throw new Error(
    "API base URL is not configured. Set NEXT_PUBLIC_API_BASE_URL in your frontend environment.",
   );
@@ -113,7 +125,7 @@ async function apiRequest(route, options = {}) {
   try {
    const isHttps = window.location.protocol === "https:";
    const isLocalhostTarget =
-    /(^https?:\/\/)(localhost|127\.0\.0\.1)(:\d+)?/.test(API_BASE_URL);
+    /(^https?:\/\/)(localhost|127\.0\.0\.1)(:\d+)?/.test(runtimeApiBase);
 
    if (isHttps && isLocalhostTarget) {
     throw new Error(
@@ -141,7 +153,7 @@ async function apiRequest(route, options = {}) {
  // Ensure the effective base URL contains an `/api` segment. Some deployments
  // or preview env vars point to the tunnel root (e.g. https://abc.ngrok.io)
  // — in that case ensure we call (root)/api/v1/<route> instead of root/<route>.
- let effectiveBase = (API_BASE_URL || "").replace(/\/+$/g, "");
+ let effectiveBase = (runtimeApiBase || "").replace(/\/+$/g, "");
  if (!/\/api(\/|$)/i.test(effectiveBase)) {
   effectiveBase = `${effectiveBase}/api/v1`;
   if (typeof window !== "undefined" && console && console.warn) {
