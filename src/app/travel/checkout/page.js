@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -19,7 +19,7 @@ const modeRoutes = {
  buses: "/",
 };
 
-export default function TravelCheckoutPage() {
+function TravelCheckoutContent() {
  const router = useRouter();
  const searchParams = useSearchParams();
  const [paymentMethod, setPaymentMethod] = useState("upi");
@@ -199,5 +199,26 @@ function SummaryItem({ label, value }) {
    </p>
    <p className="mt-1 font-semibold text-slate-900">{value || "-"}</p>
   </div>
+ );
+}
+
+function LoadingFallback() {
+ return (
+  <main className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(56,189,248,0.2),_transparent_32%),radial-gradient(circle_at_top_right,_rgba(16,185,129,0.16),_transparent_28%),linear-gradient(180deg,_#f9fdff_0%,_#eefbf5_100%)] py-8 sm:py-12">
+   <section className="container relative mx-auto px-4 flex items-center justify-center min-h-96">
+    <div className="text-center">
+     <LoaderCircle className="h-8 w-8 animate-spin mx-auto mb-4 text-cyan-600" />
+     <p className="text-gray-600">Loading checkout...</p>
+    </div>
+   </section>
+  </main>
+ );
+}
+
+export default function TravelCheckoutPage() {
+ return (
+  <Suspense fallback={<LoadingFallback />}>
+   <TravelCheckoutContent />
+  </Suspense>
  );
 }

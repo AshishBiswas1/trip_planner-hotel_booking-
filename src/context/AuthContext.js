@@ -22,8 +22,7 @@ export function AuthProvider({ children }) {
  const [user, setUser] = useState(null);
  const [isAuthLoading, setIsAuthLoading] = useState(true);
 
- const clearAuth = useCallback((source = "unknown") => {
-  console.log("[Auth] cleared by:", source);
+ const clearAuth = useCallback(() => {
   authStorage.clearToken();
   authStorage.clearUser();
   setToken(null);

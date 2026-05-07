@@ -1,20 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { use, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import CustomAlert from "@/components/CustomAlert";
 import { authApi } from "@/lib/api";
-import { useAuth } from "@/context/AuthContext";
 import { Eye, EyeOff } from "lucide-react";
 
-export default function SignupPage() {
+export default function ResetPasswordPage({ params }) {
  const [showPassword, setShowPassword] = useState(false);
  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
  const [isSubmitting, setIsSubmitting] = useState(false);
  const [alertState, setAlertState] = useState(null);
  const router = useRouter();
- const { loginWithAuthData } = useAuth();
+ const { token } = use(params);
 
  const handleSubmit = async (event) => {
   event.preventDefault();
@@ -23,22 +22,19 @@ export default function SignupPage() {
 
   const formData = new FormData(event.currentTarget);
   const payload = {
-   name: formData.get("name")?.toString().trim(),
-   email: formData.get("email")?.toString().trim(),
    password: formData.get("password")?.toString(),
    confirmPassword: formData.get("confirmPassword")?.toString(),
   };
 
   try {
-   const data = await authApi.register(payload);
-   await loginWithAuthData(data);
+   const data = await authApi.resetPassword(token, payload);
    setAlertState({
     type: "success",
-    message: "Signup successful. Redirecting to home...",
+    message: data?.message || "Password updated successfully.",
    });
    setTimeout(() => {
-    router.push("/");
-   }, 900);
+    router.push("/login");
+   }, 1200);
   } catch (error) {
    setAlertState({
     type: "error",
@@ -54,70 +50,32 @@ export default function SignupPage() {
    <section className="min-h-[calc(100vh-88px)] flex items-center justify-center px-4 py-12">
     <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
      <Link
-      href="/"
+      href="/login"
       className="inline-flex items-center text-sm font-medium text-gray-600 hover:text-blue-600 mb-4"
      >
-      ← Back to home
+      ← Back to login
      </Link>
      <h1 className="text-3xl font-bold text-gray-900 mb-2">
-      Create your account
+      Set a new password
      </h1>
      <p className="text-gray-600 mb-8">
-      Start booking hotels and flights in one place.
+      Create a new password for your Trip Planner account.
      </p>
 
      <form className="space-y-5" onSubmit={handleSubmit}>
       <div>
        <label
-        htmlFor="name"
-        className="block text-sm font-medium text-gray-700 mb-1"
-       >
-        Full name
-       </label>
-       <input
-        id="name"
-        name="name"
-        type="text"
-        placeholder="Your full name"
-        className="w-full rounded-lg border border-gray-300 px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500"
-        required
-       />
-      </div>
-
-      <div>
-       <label
-        htmlFor="email"
-        className="block text-sm font-medium text-gray-700 mb-1"
-       >
-        Email
-       </label>
-       <input
-        id="email"
-        name="email"
-        type="email"
-        placeholder="you@example.com"
-        autoComplete="email"
-        data-lpignore="true"
-        data-1p-ignore="true"
-        suppressHydrationWarning
-        className="w-full rounded-lg border border-gray-300 px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500"
-        required
-       />
-      </div>
-
-      <div>
-       <label
         htmlFor="password"
         className="block text-sm font-medium text-gray-700 mb-1"
        >
-        Password
+        New password
        </label>
        <div className="relative">
         <input
          id="password"
          name="password"
          type={showPassword ? "text" : "password"}
-         placeholder="Create a password"
+         placeholder="Create a new password"
          className="w-full rounded-lg border border-gray-300 px-4 py-2.5 pr-11 outline-none focus:ring-2 focus:ring-blue-500"
          required
         />
@@ -148,7 +106,7 @@ export default function SignupPage() {
          id="confirmPassword"
          name="confirmPassword"
          type={showConfirmPassword ? "text" : "password"}
-         placeholder="Re-enter your password"
+         placeholder="Re-enter your new password"
          className="w-full rounded-lg border border-gray-300 px-4 py-2.5 pr-11 outline-none focus:ring-2 focus:ring-blue-500"
          required
         />
@@ -178,16 +136,9 @@ export default function SignupPage() {
        disabled={isSubmitting}
        className="w-full bg-blue-500 text-white rounded-lg py-2.5 font-semibold hover:bg-blue-600 transition-colors duration-300 disabled:opacity-70 disabled:cursor-not-allowed"
       >
-       {isSubmitting ? "Creating account..." : "Sign Up"}
+       {isSubmitting ? "Updating..." : "Reset password"}
       </button>
      </form>
-
-     <p className="text-sm text-gray-600 mt-6 text-center">
-      Already have an account?{" "}
-      <Link href="/login" className="text-blue-600 hover:underline font-medium">
-       Login
-      </Link>
-     </p>
     </div>
    </section>
   </main>

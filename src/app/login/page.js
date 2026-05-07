@@ -74,6 +74,10 @@ export default function LoginPage() {
         name="email"
         type="email"
         placeholder="you@example.com"
+        autoComplete="email"
+        data-lpignore="true"
+        data-1p-ignore="true"
+        suppressHydrationWarning
         className="w-full rounded-lg border border-gray-300 px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500"
         required
        />
@@ -128,6 +132,14 @@ export default function LoginPage() {
        className="text-blue-600 hover:underline font-medium"
       >
        Sign up
+      </Link>
+     </p>
+     <p className="text-sm text-gray-600 mt-3 text-center">
+      <Link
+       href="/forgot-password"
+       className="text-blue-600 hover:underline font-medium"
+      >
+       Forgot your password?
       </Link>
      </p>
     </div>

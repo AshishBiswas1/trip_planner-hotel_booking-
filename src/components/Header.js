@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import {
  BedDouble,
@@ -16,7 +17,9 @@ import {
 export default function Header() {
  const [isMobileOpen, setIsMobileOpen] = useState(false);
  const [isPanelOpen, setIsPanelOpen] = useState(false);
+ const [isLoggingOut, setIsLoggingOut] = useState(false);
  const closePanelTimeoutRef = useRef(null);
+ const router = useRouter();
  const { user, isAuthLoading, isAuthenticated, logout } = useAuth();
 
  useEffect(() => {
@@ -71,7 +74,16 @@ export default function Header() {
      )}&background=2563eb&color=fff`;
 
  const handleLogout = async () => {
-  await logout();
+  setIsLoggingOut(true);
+
+  try {
+   await logout();
+   router.replace("/");
+   router.refresh();
+  } finally {
+   setIsLoggingOut(false);
+  }
+
   setIsMobileOpen(false);
  };
 
@@ -155,9 +167,10 @@ export default function Header() {
        <button
         type="button"
         onClick={handleLogout}
+        disabled={isLoggingOut}
         className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-100"
        >
-        Logout
+        {isLoggingOut ? "Logging out..." : "Logout"}
        </button>
       </>
      ) : (
@@ -192,71 +205,67 @@ export default function Header() {
    </div>
 
    <div className="pointer-events-none absolute inset-x-0 top-full z-50 hidden md:block">
-    <div className="container mx-auto px-4">
+    <div
+     className={`pointer-events-auto mt-2 overflow-hidden rounded-2xl border border-white/70 bg-white/95 shadow-xl shadow-slate-900/10 backdrop-blur-xl transition-all duration-300 ${
+      isPanelOpen ? "translate-y-0 opacity-100" : "-translate-y-2 opacity-0"
+     }`}
+    >
      <div
-      className={`pointer-events-auto mt-2 overflow-hidden rounded-2xl border border-white/70 bg-white/95 shadow-xl shadow-slate-900/10 backdrop-blur-xl transition-all duration-300 ${
-       isPanelOpen ? "translate-y-0 opacity-100" : "-translate-y-2 opacity-0"
+      className={`grid overflow-hidden transition-all duration-300 ${
+       isPanelOpen ? "max-h-[380px] grid-rows-[1fr]" : "max-h-0 grid-rows-[0fr]"
       }`}
      >
-      <div
-       className={`grid overflow-hidden transition-all duration-300 ${
-        isPanelOpen
-         ? "max-h-[380px] grid-rows-[1fr]"
-         : "max-h-0 grid-rows-[0fr]"
-       }`}
-      >
-       <div className="overflow-hidden">
-        <div className="grid grid-cols-5 gap-3 p-4">
-         {hotelMenuItems.map((item) => {
-          const Icon = item.icon;
-          return (
-           <Link
-            key={item.title}
-            href={item.href}
-            className="group rounded-2xl border border-slate-200 bg-gradient-to-br from-cyan-50 to-white p-3 transition hover:-translate-y-0.5 hover:border-cyan-300 hover:shadow-md hover:shadow-cyan-500/15"
-           >
-            <div className="flex items-start gap-2.5">
-             <span className="rounded-lg bg-cyan-100 p-2 text-cyan-700 transition group-hover:bg-cyan-200">
-              <Icon className="h-4 w-4" />
+      <div className="overflow-hidden">
+       <div className="grid grid-cols-5 gap-3 p-4">
+        {hotelMenuItems.map((item) => {
+         const Icon = item.icon;
+         return (
+          <Link
+           key={item.title}
+           href={item.href}
+           className="group rounded-2xl border border-slate-200 bg-gradient-to-br from-cyan-50 to-white p-3 transition hover:-translate-y-0.5 hover:border-cyan-300 hover:shadow-md hover:shadow-cyan-500/15"
+          >
+           <div className="flex items-start gap-2.5">
+            <span className="rounded-lg bg-cyan-100 p-2 text-cyan-700 transition group-hover:bg-cyan-200">
+             <Icon className="h-4 w-4" />
+            </span>
+            <span>
+             <span className="block text-sm font-bold text-slate-800">
+              {item.title}
              </span>
-             <span>
-              <span className="block text-sm font-bold text-slate-800">
-               {item.title}
-              </span>
-              <span className="mt-0.5 block text-xs text-slate-600">
-               {item.description}
-              </span>
+             <span className="mt-0.5 block text-xs text-slate-600">
+              {item.description}
              </span>
-            </div>
-           </Link>
-          );
-         })}
+            </span>
+           </div>
+          </Link>
+         );
+        })}
 
-         {transportItems.map((item) => {
-          const Icon = item.icon;
-          return (
-           <Link
-            key={item.title}
-            href={item.href}
-            className="group rounded-2xl border border-slate-200 bg-gradient-to-br from-emerald-50 to-white p-3 transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md hover:shadow-emerald-500/15"
-           >
-            <div className="flex items-start gap-2.5">
-             <span className="rounded-lg bg-emerald-100 p-2 text-emerald-700 transition group-hover:bg-emerald-200">
-              <Icon className="h-4 w-4" />
+        {transportItems.map((item) => {
+         const Icon = item.icon;
+         return (
+          <Link
+           key={item.title}
+           href={item.href}
+           className="group rounded-2xl border border-slate-200 bg-gradient-to-br from-emerald-50 to-white p-3 transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md hover:shadow-emerald-500/15"
+          >
+           <div className="flex items-start gap-2.5">
+            <span className="rounded-lg bg-emerald-100 p-2 text-emerald-700 transition group-hover:bg-emerald-200">
+             <Icon className="h-4 w-4" />
+            </span>
+            <span>
+             <span className="block text-sm font-bold text-slate-800">
+              {item.title}
              </span>
-             <span>
-              <span className="block text-sm font-bold text-slate-800">
-               {item.title}
-              </span>
-              <span className="mt-0.5 block text-xs text-slate-600">
-               {item.description}
-              </span>
+             <span className="mt-0.5 block text-xs text-slate-600">
+              {item.description}
              </span>
-            </div>
-           </Link>
-          );
-         })}
-        </div>
+            </span>
+           </div>
+          </Link>
+         );
+        })}
        </div>
       </div>
      </div>
@@ -367,9 +376,10 @@ export default function Header() {
         <button
          type="button"
          onClick={handleLogout}
+         disabled={isLoggingOut}
          className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700"
         >
-         Logout
+         {isLoggingOut ? "Logging out..." : "Logout"}
         </button>
        </>
       ) : (
