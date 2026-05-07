@@ -85,13 +85,8 @@ async function apiRequest(route, options = {}) {
   );
  }
 
- // Helpful developer/runtime check: when the frontend is served over HTTPS (deployed)
- // the browser will block requests to http://localhost or 127.0.0.1 due to mixed
- // content / address-space rules. Detect that early and surface a clear message
- // instead of a generic "fetch failed" network error.
- // No runtime base checks — use the configured `API_BASE_URL` as-is so the
- // frontend connects directly to whatever URL is provided (local http, https
- // tunnel, or deployed backend).
+ // Use the configured `API_BASE_URL` exactly as provided in the environment.
+ // There are no runtime URL overrides, tunneling, or mixed-content checks here.
 
  const requestHeaders = {
   ...headers,
@@ -105,9 +100,8 @@ async function apiRequest(route, options = {}) {
   requestHeaders.Authorization = `Bearer ${token}`;
  }
 
- // Ensure the effective base URL contains an `/api` segment. Some deployments
- // or preview env vars point to the tunnel root (e.g. https://abc.ngrok.io)
- // — in that case ensure we call (root)/api/v1/<route> instead of root/<route>.
+ // Ensure the effective base URL contains an `/api` segment (e.g. /api/v1)
+ // so routes are appended correctly.
  const requestUrl = `${API_BASE_URL.replace(/\/+$/g, "")}${route}`;
  const fetchOptions = {
   method,
