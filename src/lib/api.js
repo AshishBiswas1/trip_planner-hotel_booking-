@@ -34,6 +34,7 @@ export const API_ROUTES = {
   resetPassword: (token) => `/user/reset-password/${token}`,
   logout: "/user/logout",
   me: "/user/me",
+  updatePassword: "/user/updateMyPassword",
   deleteMe: "/user/deleteMe",
   all: "/user",
   byId: (id) => `/user/${id}`,
@@ -46,9 +47,17 @@ export const API_ROUTES = {
  room: {
   byHotelId: (hotelId) => `/hotel/${hotelId}/rooms`,
   byId: (hotelId, roomId) => `/hotel/${hotelId}/rooms/${roomId}`,
+  create: (hotelId) => `/hotel/${hotelId}/rooms`,
  },
  booking: {
   create: (hotelId) => `/booking/book/${hotelId}`,
+  me: "/booking/me",
+ },
+ review: {
+  me: "/review/me",
+ },
+ payment: {
+  me: "/booking/my-payments",
  },
  trip: {
   all: "/trip",
@@ -61,6 +70,10 @@ export const API_ROUTES = {
   flightSchedule: "/travel/flights/schedule",
   busSearch: "/travel/buses/search",
   busStops: "/travel/buses/stops",
+ },
+ ai: {
+  estimateTrip: "/ai/estimate-trip",
+  ping: "/ai/ping",
  },
 };
 
@@ -78,6 +91,7 @@ function buildQueryString(params = {}) {
 
 async function apiRequest(route, options = {}) {
  const { method = "GET", body, token, headers = {} } = options;
+ const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
 
  if (!API_BASE_URL) {
   throw new Error(
@@ -92,7 +106,7 @@ async function apiRequest(route, options = {}) {
   ...headers,
  };
 
- if (body) {
+ if (body && !isFormData) {
   requestHeaders["Content-Type"] = "application/json";
  }
 
@@ -106,7 +120,7 @@ async function apiRequest(route, options = {}) {
  const fetchOptions = {
   method,
   headers: requestHeaders,
-  body: body ? JSON.stringify(body) : undefined,
+  body: body ? (isFormData ? body : JSON.stringify(body)) : undefined,
  };
 
  let response;
@@ -316,6 +330,18 @@ export const authApi = {
    method: "GET",
    token,
   }),
+ updateMe: (payload, token) =>
+  apiRequest(API_ROUTES.user.me, {
+   method: "PATCH",
+   body: payload,
+   token,
+  }),
+ updatePassword: (payload, token) =>
+  apiRequest(API_ROUTES.user.updatePassword, {
+   method: "PATCH",
+   body: payload,
+   token,
+  }),
  logout: (token) =>
   apiRequest(API_ROUTES.user.logout, {
    method: "GET",
@@ -370,6 +396,21 @@ export const bookingApi = {
    token,
   });
  },
+ getMyBookings: (token = authStorage.getToken()) =>
+  apiRequest(API_ROUTES.booking.me, {
+   method: "GET",
+   token,
+  }),
+};
+
+export const aiApi = {
+ estimateTrip: (payload, token = authStorage.getToken()) =>
+  apiRequest(API_ROUTES.ai.estimateTrip, {
+   method: "POST",
+   body: payload,
+   token,
+  }),
+ ping: () => apiRequest(API_ROUTES.ai.ping, { method: "GET" }),
 };
 
 export const paymentApi = {
@@ -381,6 +422,30 @@ export const paymentApi = {
    token,
   });
  },
+ getMyPayments: (token = authStorage.getToken()) =>
+  apiRequest(API_ROUTES.payment.me, {
+   method: "GET",
+   token,
+  }),
+};
+
+export const reviewApi = {
+ getMyReviews: (token = authStorage.getToken()) =>
+  apiRequest(API_ROUTES.review.me, {
+   method: "GET",
+   token,
+  }),
+ updateReview: (id, payload, token = authStorage.getToken()) =>
+  apiRequest(`/review/${id}`, {
+   method: "PATCH",
+   body: payload,
+   token,
+  }),
+ deleteReview: (id, token = authStorage.getToken()) =>
+  apiRequest(`/review/${id}`, {
+   method: "DELETE",
+   token,
+  }),
 };
 
 export const tripApi = {
@@ -392,8 +457,7 @@ export const tripApi = {
    token,
   });
  },
- getUserTrips: (filters = {}) => {
-  const token = authStorage.getToken();
+ getUserTrips: (filters = {}, token = authStorage.getToken()) => {
   return apiRequest(`${API_ROUTES.trip.all}${buildQueryString(filters)}`, {
    method: "GET",
    token,
@@ -406,6 +470,17 @@ export const tripApi = {
    token,
   });
  },
+ updateTrip: (id, payload, token = authStorage.getToken()) =>
+  apiRequest(API_ROUTES.trip.byId(id), {
+   method: "PATCH",
+   body: payload,
+   token,
+  }),
+ deleteTrip: (id, token = authStorage.getToken()) =>
+  apiRequest(API_ROUTES.trip.byId(id), {
+   method: "DELETE",
+   token,
+  }),
 };
 
 export const travelApi = {

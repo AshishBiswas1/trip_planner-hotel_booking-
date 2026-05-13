@@ -73,6 +73,8 @@ export default function Header() {
       user?.name || "User",
      )}&background=2563eb&color=fff`;
 
+ const profileLink = "/user";
+
  const handleLogout = async () => {
   setIsLoggingOut(true);
 
@@ -159,11 +161,19 @@ export default function Header() {
     <div className="hidden items-center gap-4 md:flex">
      {isAuthLoading ? null : isAuthenticated ? (
       <>
-       <img
-        src={profileImage}
-        alt="Profile"
-        className="h-9 w-9 rounded-full border border-slate-200 object-cover"
-       />
+       <Link
+        href={profileLink}
+        className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2 py-1 pr-3 transition hover:border-cyan-300 hover:shadow-sm"
+       >
+        <img
+         src={profileImage}
+         alt={user?.name || "Profile"}
+         className="h-9 w-9 flex-shrink-0 rounded-full border border-slate-200 object-cover block"
+        />
+        <span className="hidden max-w-[160px] truncate text-sm font-semibold text-slate-700 sm:inline">
+         {user?.name || "Profile"}
+        </span>
+       </Link>
        <button
         type="button"
         onClick={handleLogout}
@@ -361,6 +371,16 @@ export default function Header() {
         </Link>
        );
       })}
+
+      {isAuthenticated ? (
+       <Link
+        href={profileLink}
+        className="block rounded-xl bg-white p-3 text-sm font-semibold text-slate-700 truncate"
+        onClick={() => setIsMobileOpen(false)}
+       >
+        {user?.name || "My Profile"}
+       </Link>
+      ) : null}
      </div>
 
      <div className="mt-4 flex flex-col space-y-2">
@@ -370,7 +390,7 @@ export default function Header() {
          <img
           src={profileImage}
           alt="Profile"
-          className="h-10 w-10 rounded-full border border-slate-200 object-cover"
+          className="h-10 w-10 flex-shrink-0 rounded-full border border-slate-200 object-cover block"
          />
         </div>
         <button

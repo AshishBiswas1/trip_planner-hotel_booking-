@@ -85,6 +85,8 @@ export default function TripComposerPanel({
  error,
  successMessage,
  loading,
+ onPredict,
+ predictResult,
 }) {
  return (
   <motion.aside
@@ -257,6 +259,18 @@ export default function TripComposerPanel({
      </div>
     </div>
 
+    <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+     <p className="mb-3 text-xs font-bold uppercase tracking-[0.18em] text-amber-700">
+      ✨ Automatic flight prediction
+     </p>
+     <p className="text-sm text-amber-900">
+      When you click "Predict Cost", the system automatically checks all major
+      Indian carriers (Air India, Indigo, SpiceJet, GoAir, Vistara) for your
+      route and calculates the average cost. No need to choose individual
+      flights—we've got you covered!
+     </p>
+    </div>
+
     <div className="rounded-3xl border border-slate-200 bg-[linear-gradient(135deg,rgba(34,211,238,0.08),rgba(16,185,129,0.08))] p-4">
      <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-700">
       <Sparkles className="h-4 w-4 text-cyan-700" />
@@ -280,6 +294,98 @@ export default function TripComposerPanel({
       </div>
      ))}
     </div>
+
+    {predictResult ? (
+     <div className="rounded-2xl border border-slate-200 bg-white p-4">
+      <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
+       Predicted cost breakdown
+      </p>
+      <div className="mt-3 text-sm text-slate-700">
+       {predictResult.breakdown ? (
+        <div className="space-y-2">
+         {predictResult.breakdown.flight ? (
+          <div className="flex items-center justify-between">
+           <span>Flight</span>
+           <span className="font-semibold">
+            {new Intl.NumberFormat("en-IN", {
+             style: "currency",
+             currency: "INR",
+             maximumFractionDigits: 0,
+            }).format(
+             Number(predictResult.breakdown.flight.estimated_cost || 0),
+            )}
+           </span>
+          </div>
+         ) : null}
+
+         {predictResult.breakdown.bus ? (
+          <div className="flex items-center justify-between">
+           <span>Bus</span>
+           <span className="font-semibold">
+            {new Intl.NumberFormat("en-IN", {
+             style: "currency",
+             currency: "INR",
+             maximumFractionDigits: 0,
+            }).format(Number(predictResult.breakdown.bus.estimated_cost || 0))}
+           </span>
+          </div>
+         ) : null}
+
+         {predictResult.breakdown.hotel ? (
+          <div className="flex items-center justify-between">
+           <span>
+            Hotel ({predictResult.breakdown.hotel.nights || 1} nights)
+           </span>
+           <span className="font-semibold">
+            {new Intl.NumberFormat("en-IN", {
+             style: "currency",
+             currency: "INR",
+             maximumFractionDigits: 0,
+            }).format(
+             Number(predictResult.breakdown.hotel.estimated_cost || 0),
+            )}
+           </span>
+          </div>
+         ) : null}
+
+         {Array.isArray(predictResult.breakdown.touring) &&
+         predictResult.breakdown.touring.length ? (
+          <div>
+           <div className="text-xs text-slate-500">Touring fees</div>
+           {predictResult.breakdown.touring.map((t, i) => (
+            <div key={i} className="flex items-center justify-between">
+             <span className="truncate">
+              {t.request?.Type || `Tour ${i + 1}`}
+             </span>
+             <span className="font-semibold">
+              {new Intl.NumberFormat("en-IN", {
+               style: "currency",
+               currency: "INR",
+               maximumFractionDigits: 0,
+              }).format(Number(t.estimated_entry_fee || 0))}
+             </span>
+            </div>
+           ))}
+          </div>
+         ) : null}
+
+         <div className="mt-3 border-t pt-2 flex items-center justify-between">
+          <span className="font-bold">Total</span>
+          <span className="font-black text-lg">
+           {new Intl.NumberFormat("en-IN", {
+            style: "currency",
+            currency: "INR",
+            maximumFractionDigits: 0,
+           }).format(Number(predictResult.total_cost || 0))}
+          </span>
+         </div>
+        </div>
+       ) : (
+        <div className="text-sm text-slate-500">No breakdown available.</div>
+       )}
+      </div>
+     </div>
+    ) : null}
 
     <AnimatePresence mode="wait">
      {error ? (
@@ -309,21 +415,32 @@ export default function TripComposerPanel({
      ) : null}
     </AnimatePresence>
 
-    <motion.button
-     type="submit"
-     disabled={loading}
-     whileHover={!loading ? { scale: 1.01 } : undefined}
-     whileTap={!loading ? { scale: 0.99 } : undefined}
-     className="group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-r from-cyan-500 via-teal-500 to-emerald-500 px-5 py-4 text-sm font-bold text-white shadow-[0_18px_50px_rgba(20,184,166,0.35)] transition disabled:cursor-not-allowed disabled:opacity-70"
-    >
-     <span className="absolute inset-0 bg-[linear-gradient(120deg,transparent,rgba(255,255,255,0.26),transparent)] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-     {loading ? (
-      <Loader2 className="h-4 w-4 animate-spin" />
-     ) : (
-      <ArrowRight className="h-4 w-4" />
-     )}
-     <span>{loading ? "Creating trip..." : "Create Trip"}</span>
-    </motion.button>
+    <div className="flex flex-col gap-3">
+     <button
+      type="button"
+      onClick={onPredict}
+      disabled={loading}
+      className="group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm font-bold text-slate-900 shadow-sm transition disabled:cursor-not-allowed disabled:opacity-70"
+     >
+      <span>{loading ? "Predicting..." : "Predict Cost"}</span>
+     </button>
+
+     <motion.button
+      type="submit"
+      disabled={loading}
+      whileHover={!loading ? { scale: 1.01 } : undefined}
+      whileTap={!loading ? { scale: 0.99 } : undefined}
+      className="group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-r from-cyan-500 via-teal-500 to-emerald-500 px-5 py-4 text-sm font-bold text-white shadow-[0_18px_50px_rgba(20,184,166,0.35)] transition disabled:cursor-not-allowed disabled:opacity-70"
+     >
+      <span className="absolute inset-0 bg-[linear-gradient(120deg,transparent,rgba(255,255,255,0.26),transparent)] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+      {loading ? (
+       <Loader2 className="h-4 w-4 animate-spin" />
+      ) : (
+       <ArrowRight className="h-4 w-4" />
+      )}
+      <span>{loading ? "Creating trip..." : "Create Trip"}</span>
+     </motion.button>
+    </div>
    </form>
   </motion.aside>
  );

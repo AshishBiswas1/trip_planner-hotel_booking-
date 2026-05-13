@@ -42,11 +42,7 @@ function getRoomSpecials(room) {
   );
  }
 
- specials.push(
-  room?.isBooked
-   ? "Popular room currently reserved"
-   : "Ready for immediate booking",
- );
+ specials.push("Ready for immediate booking");
 
  return specials.slice(0, 2);
 }
@@ -127,9 +123,10 @@ export default function RoomStrip({ hotelId, hotelSlug, filters = {} }) {
  return (
   <div id="room-strip" className="mt-6 space-y-4 pb-2">
    {rooms.map((room, index) => {
-    const statusClasses = room.isBooked
-     ? "bg-rose-50 text-rose-700 ring-rose-200"
-     : "bg-emerald-50 text-emerald-700 ring-emerald-200";
+    const statusLabel =
+     filters.checkInDate && filters.checkOutDate
+      ? "Available for selected dates"
+      : "Active room";
 
     return (
      <motion.article
@@ -171,10 +168,8 @@ export default function RoomStrip({ hotelId, hotelSlug, filters = {} }) {
             <Users className="h-3.5 w-3.5" />
             Capacity {Number.isFinite(room.capacity) ? room.capacity : "N/A"}
            </span>
-           <span
-            className={`inline-flex rounded-full px-2.5 py-1 font-semibold ring-1 ${statusClasses}`}
-           >
-            {room.isBooked ? "Booked" : "Available"}
+           <span className="inline-flex rounded-full bg-emerald-50 px-2.5 py-1 font-semibold text-emerald-700 ring-1 ring-emerald-200">
+            {statusLabel}
            </span>
           </div>
 

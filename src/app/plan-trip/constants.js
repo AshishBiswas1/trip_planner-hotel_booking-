@@ -68,6 +68,7 @@ export const TRAVEL_MODES = [
  { key: "TRANSIT", label: "Transit" },
  { key: "WALK", label: "Walk" },
  { key: "BICYCLE", label: "Cycle" },
+ { key: "FLIGHT", label: "Flight" },
 ];
 
 export const TOP_STATS = [
