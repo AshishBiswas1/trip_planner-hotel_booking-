@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { tripApi } from "@/lib/api";
+import { tripApi, aiApi } from "@/lib/api";
 import { ArrowLeft } from "lucide-react";
 import {
  GOOGLE_MAPS_API_KEY,
@@ -58,6 +58,8 @@ export default function PlanTripPage() {
   end: "Enter a place name or tap the map.",
  });
  const [loading, setLoading] = useState(false);
+ const [predictLoading, setPredictLoading] = useState(false);
+ const [predictResult, setPredictResult] = useState(null);
  const [useCurrentLocationLoading, setUseCurrentLocationLoading] =
   useState(false);
  const [geoPermissionState, setGeoPermissionState] = useState("unknown");
@@ -560,7 +562,32 @@ export default function PlanTripPage() {
      })),
     };
 
-    await tripApi.createTrip(payload);
+    // Include predicted cost data if available
+    if (predictResult) {
+     if (predictResult.breakdown) {
+      const cb = {};
+      if (predictResult.breakdown.hotel)
+       cb.hotelCost = Number(predictResult.breakdown.hotel.estimated_cost || 0);
+      if (predictResult.breakdown.flight)
+       cb.flightCost = Number(
+        predictResult.breakdown.flight.estimated_cost || 0,
+       );
+      if (predictResult.breakdown.bus)
+       cb.busCost = Number(predictResult.breakdown.bus.estimated_cost || 0);
+      if (Array.isArray(predictResult.breakdown.touring)) {
+       cb.otherCost = predictResult.breakdown.touring.reduce(
+        (sum, t) => sum + (Number(t.estimated_entry_fee) || 0),
+        0,
+       );
+      }
+      payload.costBreakdown = cb;
+     }
+     if (predictResult.total_cost !== undefined) {
+      payload.totalCost = predictResult.total_cost;
+     }
+    }
+
+    const createdTrip = await tripApi.createTrip(payload);
 
     setSuccessMessage("Trip created successfully.");
     setShowSuccessOverlay(true);
@@ -586,8 +613,193 @@ export default function PlanTripPage() {
    selectedRouteIndex,
    startPoint,
    form.travelMode,
+   predictResult,
   ],
  );
+
+ const handlePredict = useCallback(async () => {
+  setError("");
+  setPredictResult(null);
+  setPredictLoading(true);
+
+  try {
+   const [resolvedStart, resolvedEnd] = await Promise.all([
+    startPoint
+     ? { coords: startPoint, label: form.startPlace }
+     : geocodePlace(GOOGLE_MAPS_API_KEY, form.startPlace),
+    endPoint
+     ? { coords: endPoint, label: form.endPlace }
+     : geocodePlace(GOOGLE_MAPS_API_KEY, form.endPlace),
+   ]);
+
+   const startCoords = toLatLngLiteral(resolvedStart?.coords);
+   const endCoords = toLatLngLiteral(resolvedEnd?.coords);
+
+   if (!startCoords || !endCoords) {
+    throw new Error("Resolve both locations before predicting cost.");
+   }
+
+   const selectedRoutePath = routeOptions[selectedRouteIndex]?.path || [];
+   const majorRouteCoordinates = await buildMajorRouteCoordinates({
+    apiKey: GOOGLE_MAPS_API_KEY,
+    routePath: selectedRoutePath,
+    startCoords,
+    endCoords,
+    startLabel: resolvedStart?.label || form.startPlace,
+    endLabel: resolvedEnd?.label || form.endPlace,
+    maxIntermediatePoints: 8,
+   });
+
+   const haversineKm = (a, b) => {
+    const toRad = (deg) => (deg * Math.PI) / 180;
+    const R = 6371;
+    const dLat = toRad(b.lat - a.lat);
+    const dLon = toRad(b.lng - a.lng);
+    const lat1 = toRad(a.lat);
+    const lat2 = toRad(b.lat);
+    const sinDLat = Math.sin(dLat / 2);
+    const sinDLon = Math.sin(dLon / 2);
+    const aa =
+     sinDLat * sinDLat + sinDLon * sinDLon * Math.cos(lat1) * Math.cos(lat2);
+    const c = 2 * Math.atan2(Math.sqrt(aa), Math.sqrt(1 - aa));
+    return R * c;
+   };
+
+   const distanceKm = haversineKm(startCoords, endCoords);
+
+   const transportModel = form.travelMode === "TRANSIT" ? "bus" : "touring";
+
+   const payload = {
+    hotel: {
+     data: {
+      City: form.endPlace || form.startPlace || "",
+      Accomadation_Type: "Standard",
+     },
+     nights: Number(form.durationDays) || 1,
+    },
+    route: majorRouteCoordinates.map((point) => ({
+     coordinates: { lat: point.lat, lng: point.lng },
+    })),
+    touring: [
+     {
+      Type: "sightseeing",
+      Google_review_rating: 4.2,
+      time_needed_to_visit_in_hrs: Math.max(
+       1,
+       Math.round((Number(form.durationDays) || 1) * 2),
+      ),
+     },
+    ],
+   };
+
+   // Only predict flights if user selected FLIGHT as travel mode
+   if (form.travelMode === "FLIGHT") {
+    const cityToAirportCode = {
+     delhi: "DEL",
+     "new delhi": "DEL",
+     mumbai: "BOM",
+     bangalore: "BLR",
+     hyderabad: "HYD",
+     kolkata: "CCU",
+     chennai: "MAA",
+     pune: "PNQ",
+     goa: "GOI",
+     lucknow: "LKO",
+     agra: "AGR",
+     jaipur: "JAI",
+     bhopal: "BHO",
+     indore: "IDR",
+     kochi: "COK",
+     thiruvananthapuram: "TRV",
+     chandigarh: "CHD",
+     amritsar: "ATQ",
+     nagpur: "NAG",
+    };
+
+    const getAirportCode = (placeName) => {
+     if (!placeName) return null;
+     const normalized = placeName.toLowerCase().trim();
+     return (
+      cityToAirportCode[normalized] || normalized.toUpperCase().substring(0, 3)
+     );
+    };
+
+    const sourceCode = getAirportCode(resolvedStart?.label || form.startPlace);
+    const destCode = getAirportCode(resolvedEnd?.label || form.endPlace);
+    const flightMonth = new Date().getMonth() + 1;
+
+    const majorAirlines = [
+     "Air India",
+     "Indigo",
+     "SpiceJet",
+     "GoAir",
+     "Vistara",
+    ];
+
+    if (sourceCode && destCode) {
+     payload.flights = [];
+     for (const airline of majorAirlines) {
+      payload.flights.push({
+       Source: sourceCode,
+       Destination: destCode,
+       Airline: airline,
+       Month: flightMonth,
+      });
+     }
+    }
+   } else if (form.travelMode === "TRANSIT") {
+    // Add bus prediction for TRANSIT mode
+    payload.bus = {
+     Source: resolvedStart?.label || form.startPlace || "",
+     Destination: resolvedEnd?.label || form.endPlace || "",
+     Bus_Type: "AC",
+     Operator: "Local",
+     Duration_Hours: Math.max(1, Math.round(distanceKm / 40)),
+    };
+   } else {
+    // For DRIVE, TWO_WHEELER, BICYCLE, WALK: add touring/intercity_drive
+    payload.touring = payload.touring.concat([
+     {
+      Type: "intercity_drive",
+      Google_review_rating: 4.0,
+      time_needed_to_visit_in_hrs: Math.max(1, Math.round(distanceKm / 60)),
+     },
+    ]);
+   }
+
+   const response = await aiApi.estimateTrip(payload);
+   setPredictResult(response);
+
+   const total =
+    response?.total_cost ||
+    response?.total ||
+    response?.data?.total ||
+    response?.results?.total;
+   if (total !== undefined && total !== null) {
+    const money = new Intl.NumberFormat("en-IN", {
+     style: "currency",
+     currency: "INR",
+     maximumFractionDigits: 0,
+    }).format(Number(total));
+    setSuccessMessage(`Estimated total: ${money}`);
+   } else {
+    setSuccessMessage("Prediction complete. See details.");
+   }
+  } catch (err) {
+   setError(err?.message || "Prediction failed.");
+  } finally {
+   setPredictLoading(false);
+  }
+ }, [
+  endPoint,
+  form.durationDays,
+  form.endPlace,
+  form.startPlace,
+  form.travelMode,
+  routeOptions,
+  selectedRouteIndex,
+  startPoint,
+ ]);
 
  if (!isClientMounted) {
   return (
@@ -683,7 +895,9 @@ export default function PlanTripPage() {
       summaryCards={summaryCards}
       error={error}
       successMessage={successMessage}
-      loading={loading}
+      loading={loading || predictLoading}
+      onPredict={handlePredict}
+      predictResult={predictResult}
      />
     </div>
    </motion.div>

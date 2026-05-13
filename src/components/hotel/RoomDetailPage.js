@@ -29,11 +29,29 @@ function formatPrice(value) {
 }
 
 function getRoomImage(room) {
- if (Array.isArray(room?.images) && room.images.length > 0) {
-  return room.images[0];
- }
+ const fallback =
+  "https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=1600&q=80";
 
- return "https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=1600&q=80";
+ const image = Array.isArray(room?.images) ? room.images[0] : undefined;
+ if (typeof image !== "string") return fallback;
+
+ const trimmed = image.trim();
+ if (!trimmed) return fallback;
+
+ // next/image ultimately relies on URL parsing; guard against values like "null", "undefined", or malformed strings.
+ try {
+  // Accept absolute URLs, and also protocol-relative URLs.
+  // If it's not a valid URL, we'll fall back.
+  // eslint-disable-next-line no-new
+  new URL(trimmed.startsWith("//") ? `https:${trimmed}` : trimmed);
+
+  // Ensure we return an absolute URL string. Convert protocol-relative
+  // values ("//foo...") to https-prefixed strings so Next's Image
+  // default loader can construct valid URLs.
+  return trimmed.startsWith("//") ? `https:${trimmed}` : trimmed;
+ } catch {
+  return fallback;
+ }
 }
 
 function getRoomSpecials(room) {

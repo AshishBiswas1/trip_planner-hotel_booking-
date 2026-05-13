@@ -19,6 +19,12 @@ export default function RoomStripsPage({ slug }) {
  const [maxPriceFilter, setMaxPriceFilter] = useState("");
  const [minCapacityFilter, setMinCapacityFilter] = useState("");
  const [availabilityFilter, setAvailabilityFilter] = useState("all");
+ const [checkInDateFilter, setCheckInDateFilter] = useState(
+  searchParams?.get("checkInDate") || "",
+ );
+ const [checkOutDateFilter, setCheckOutDateFilter] = useState(
+  searchParams?.get("checkOutDate") || "",
+ );
 
  useEffect(() => {
   let isMounted = true;
@@ -77,8 +83,20 @@ export default function RoomStripsPage({ slug }) {
    filters.isBooked = true;
   }
 
+  if (checkInDateFilter && checkOutDateFilter) {
+   filters.checkInDate = checkInDateFilter;
+   filters.checkOutDate = checkOutDateFilter;
+  }
+
   return filters;
- }, [roomTypeFilter, maxPriceFilter, minCapacityFilter, availabilityFilter]);
+ }, [
+  roomTypeFilter,
+  maxPriceFilter,
+  minCapacityFilter,
+  availabilityFilter,
+  checkInDateFilter,
+  checkOutDateFilter,
+ ]);
 
  return (
   <main className="hotel-page-bg min-h-screen">
@@ -121,6 +139,26 @@ export default function RoomStripsPage({ slug }) {
       </div>
 
       <div className="mt-5 grid grid-cols-1 gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 sm:grid-cols-2 lg:grid-cols-4">
+       <label className="flex flex-col gap-1 text-xs font-semibold text-slate-600">
+        Check-in
+        <input
+         type="date"
+         value={checkInDateFilter}
+         onChange={(event) => setCheckInDateFilter(event.target.value)}
+         className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700"
+        />
+       </label>
+
+       <label className="flex flex-col gap-1 text-xs font-semibold text-slate-600">
+        Check-out
+        <input
+         type="date"
+         value={checkOutDateFilter}
+         onChange={(event) => setCheckOutDateFilter(event.target.value)}
+         className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700"
+        />
+       </label>
+
        <label className="flex flex-col gap-1 text-xs font-semibold text-slate-600">
         Room Type
         <select
@@ -177,6 +215,13 @@ export default function RoomStripsPage({ slug }) {
         </select>
        </label>
       </div>
+
+      {checkInDateFilter && checkOutDateFilter ? (
+       <p className="mt-3 text-sm text-slate-500">
+        Showing rooms available from {checkInDateFilter} to {checkOutDateFilter}
+        .
+       </p>
+      ) : null}
 
       {error ? (
        <div className="mt-5 rounded-2xl border border-rose-300 bg-rose-50/90 p-5 text-sm text-rose-700">
